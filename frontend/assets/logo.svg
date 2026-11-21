@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Glowing Hexagonal Shield Background -->
+  <defs>
+    <linearGradient id="shieldGrad" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#087A55" />
+      <stop offset="100%" stop-color="#123B2E" />
+    </linearGradient>
+    <linearGradient id="mintGrad" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#65C9A5" />
+      <stop offset="100%" stop-color="#087A55" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Outer Cyber Shield Contour -->
+  <polygon points="50,6 88,24 88,58 50,92 12,58 12,24" 
+           stroke="#315344" stroke-width="2.5" fill="url(#shieldGrad)" />
+           
+  <!-- Inner Cyber Polygon -->
+  <polygon points="50,14 82,29 82,55 50,84 18,55 18,29" 
+           stroke="#087A55" stroke-width="1.5" fill="none" opacity="0.6" />
+
+  <!-- Neural Verification Check / Biometric Lattice -->
+  <path d="M35 50 L45 61 L67 36" 
+        stroke="#65C9A5" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)" />
+        
+  <!-- Forensic Scan Line Points -->
+  <circle cx="50" cy="14" r="2.5" fill="#D8C39A" />
+  <circle cx="82" cy="29" r="2.5" fill="#65C9A5" />
+  <circle cx="82" cy="55" r="2.5" fill="#65C9A5" />
+  <circle cx="50" cy="84" r="2.5" fill="#D8C39A" />
+  <circle cx="18" cy="55" r="2.5" fill="#65C9A5" />
+  <circle cx="18" cy="29" r="2.5" fill="#65C9A5" />
+  
+  <!-- Center focal radar point -->
+  <circle cx="50" cy="50" r="1.5" fill="#F5F1E8" />
+</svg>

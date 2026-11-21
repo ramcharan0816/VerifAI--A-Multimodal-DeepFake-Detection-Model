@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VERIFAI — Intelligent Media Verification & Deepfake Detection</title>
+  <meta name="description" content="Advanced AI-powered image verification platform designed to identify manipulated digital media through deep learning and multimodal forensics.">
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="brand-container" data-nav-view="overview">
+      <img src="/assets/logo.svg" alt="VerifAI Shield" class="brand-logo-svg">
+      <div class="brand-text-block">
+        <span class="brand-name">VERIFAI</span>
+        <span class="brand-tagline">See Beyond the Fake.</span>
+      </div>
+    </div>
+
+    <ul class="nav-links">
+      <li><a class="nav-link active" data-nav-view="overview">Dashboard</a></li>
+      <li><a class="nav-link" data-nav-view="detector">AI Detector</a></li>
+      <li><a class="nav-link" data-nav-view="forensics">Forensics Lab</a></li>
+      <li><a class="nav-link" data-nav-view="history">Scan History</a></li>
+      <li><a class="nav-link" data-nav-view="model">Model Insights</a></li>
+      <li><a class="nav-link" data-nav-view="workflow">How It Works</a></li>
+      <li><a class="nav-link" data-nav-view="about">About</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="btn btn-primary" data-nav-view="detector">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        <span>Analyze Media</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Layout Container -->
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar">
+      <div class="sidebar-heading">Forensic Workspace</div>
+      <ul class="sidebar-menu">
+        <li>
+          <a class="sidebar-item active" data-sidebar-view="overview">
+            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <span>Overview</span>
+          </a>
+        </li>
+        <li>
+          <a class="sidebar-item" data-sidebar-view="detector">
+            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            <span>Image Detector</span>
+          </a>
+        </li>
+        <li>
+          <a class="sidebar-item" data-sidebar-view="forensics">
+            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+            <span>Forensic Analysis</span>
+          </a>
+        </li>
+        <li>
+          <a class="sidebar-item" data-sidebar-view="history">
+            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Scan History</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-heading" style="margin-top: 1.5rem;">Intelligence</div>
+      <ul class="sidebar-menu">
+        <li>
+          <a class="sidebar-item" data-sidebar-view="model">
+            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            <span>Model Intelligence</span>
+          </a>
+        </li>
+        <li>
+          <a class="sidebar-item" data-sidebar-view="workflow">
+            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            <span>Technology</span>
+          </a>
+        </li>
+        <li>
+          <a class="sidebar-item" data-sidebar-view="about">
+            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span>About</span>
+          </a>
+        </li>
+        <li>
+          <a class="sidebar-item" data-sidebar-view="settings">
+            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <span>Settings</span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- System status indicator card -->
+      <div class="sidebar-status-card">
+        <div class="status-indicator">
+          <span class="pulse-dot"></span>
+          <span id="systemHealthText">Engine Active • PyTorch MobileNetV3</span>
+        </div>
+        <div style="font-size: 0.72rem; color: var(--color-muted-text); margin-top: 0.25rem;">
+          Inference Input: 260×260 RGB
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Dynamic Content Region -->
+    <main class="app-content">
+
+      <!-- ===================================================================
+           VIEW 1: OVERVIEW / HOMEPAGE EXPERIENCE
+           =================================================================== -->
+      <section id="view-overview" class="view-section active">
+        
+        <!-- Hero Section -->
+        <div class="hero-wrapper">
+          <canvas id="heroCanvas"></canvas>
+          <div class="hero-content">
+            <span class="badge badge-champagne">
+              <span class="pulse-dot" style="background: var(--color-champagne); box-shadow: 0 0 8px var(--color-champagne);"></span>
+              Next-Gen Multimodal Media Forensics
+            </span>
+            <h1 class="hero-headline">See Beyond the Fake.</h1>
+            <p class="hero-subheading">
+              Advanced AI-powered image verification designed to identify manipulated digital media through deep learning, spatial explainability, and forensic evidence fusion.
+            </p>
+            <div class="hero-cta-group">
+              <button class="btn btn-primary" data-nav-view="detector">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                <span>Analyze Media</span>
+              </button>
+              <button class="btn btn-champagne" data-nav-view="workflow">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <span>Explore Technology</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="hero-visual-card">
+            <div class="hero-shield-graphic">
+              <img src="/assets/logo.svg" style="width: 130px; height: 130px;" alt="VerifAI Shield">
+            </div>
+            <div style="border-top: 1px solid var(--color-border-green); padding-top: 1rem; margin-top: 0.5rem;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 0.35rem;">
+                <span class="text-muted">Model Architecture</span>
+                <span class="text-mint" style="font-weight: 600;">MobileNetV3-Small</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 0.35rem;">
+                <span class="text-muted">Test Accuracy</span>
+                <span class="text-ivory" style="font-weight: 700;">94.62%</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.78rem;">
+                <span class="text-muted">Inference Latency</span>
+                <span class="text-champagne" style="font-weight: 600;">~38.4 ms</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Stats Overview -->
+        <div class="grid-4" style="margin-bottom: 2rem;">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Total Media Scanned</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            </div>
+            <div class="stat-value" id="statTotalScans">0</div>
+            <div class="stat-footnote">Persistent SQLite Audit Records</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Authentic (Real)</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-real)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div class="stat-value text-real" id="statRealScans">0</div>
+            <div class="stat-footnote">Verified Organic Artifacts</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Manipulated (Fake)</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-fake)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+            </div>
+            <div class="stat-value text-fake" id="statFakeScans">0</div>
+            <div class="stat-footnote">Deepfakes & Synthetic Media Intercepted</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Inference Engine Speed</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-champagne)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+            </div>
+            <div class="stat-value" id="statAvgTime">38.4 ms</div>
+            <div class="stat-footnote">PyTorch 260×260 Tensor Pipeline</div>
+          </div>
+        </div>
+
+        <!-- Recent Activity Section -->
+        <div class="card" style="margin-bottom: 2.5rem;">
+          <div class="card-header">
+            <h3 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+              <span>Recent Forensic Verifications</span>
+            </h3>
+            <button class="btn btn-outline btn-sm" data-nav-view="history">View Complete Log</button>
+          </div>
+          <div id="recentActivityList">
+            <!-- Dynamic recent records -->
+          </div>
+        </div>
+
+        <!-- Why Deepfake Detection Matters -->
+        <div style="margin-bottom: 3rem;">
+          <div style="text-align: center; max-width: 680px; margin: 0 auto 2rem auto;">
+            <span class="badge badge-emerald">Critical Cybersecurity Landscape</span>
+            <h2 style="font-size: 2rem; margin-top: 0.5rem;">Why Deepfake Detection Matters</h2>
+            <p class="text-muted" style="margin-top: 0.5rem;">The rapid democratization of generative AI poses systemic vulnerabilities to digital trust, biometric identification, and information integrity.</p>
+          </div>
+
+          <div class="grid-4">
+            <div class="card">
+              <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(8, 122, 85, 0.25); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+              </div>
+              <h4 style="font-size: 1.05rem; margin-bottom: 0.5rem;">Misinformation & Elections</h4>
+              <p class="text-muted" style="font-size: 0.85rem;">Fabricated video and voice cloning manipulate public discourse and disrupt democratic voting processes through synthetic narratives.</p>
+            </div>
+
+            <div class="card">
+              <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(8, 122, 85, 0.25); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              </div>
+              <h4 style="font-size: 1.05rem; margin-bottom: 0.5rem;">Biometric & KYC Fraud</h4>
+              <p class="text-muted" style="font-size: 0.85rem;">Synthetic identity injection bypasses standard remote liveness detection in banking, fintech, and digital government identity verification.</p>
+            </div>
+
+            <div class="card">
+              <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(8, 122, 85, 0.25); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              </div>
+              <h4 style="font-size: 1.05rem; margin-bottom: 0.5rem;">Digital Evidence Tampering</h4>
+              <p class="text-muted" style="font-size: 0.85rem;">Criminal and civil judicial hearings require verifiable, transparent chains of custody and explainable forensic validation of surveillance footage.</p>
+            </div>
+
+            <div class="card">
+              <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(8, 122, 85, 0.25); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              </div>
+              <h4 style="font-size: 1.05rem; margin-bottom: 0.5rem;">Corporate Reputation</h4>
+              <p class="text-muted" style="font-size: 0.85rem;">Executive impersonation and CEO voice cloning fraud inflict multimillion-dollar financial and reputational damage on enterprises.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Frequently Asked Questions -->
+        <div class="card" style="margin-bottom: 3rem;">
+          <div class="card-header">
+            <h3 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-champagne)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              <span>Frequently Asked Forensic Questions</span>
+            </h3>
+          </div>
+
+          <div class="accordion-item open">
+            <div class="accordion-header">
+              <span>How does VerifAI achieve 94.62% detection accuracy?</span>
+              <span class="text-mint">+</span>
+            </div>
+            <div class="accordion-body">
+              VerifAI utilizes an optimized PyTorch MobileNetV3-Small convolutional neural network trained on over 100,000 balanced benchmark samples from FaceForensics++, Celeb-DF v2, and the Deepfake Detection Challenge (DFDC). Predictions are further validated by multimodal evidence fusion including 2D Fast Fourier Transform frequency domain analysis and Error Level Analysis (ELA).
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <span>What is Grad-CAM and how does it explain model decisions?</span>
+              <span class="text-mint">+</span>
+            </div>
+            <div class="accordion-body">
+              Gradient-weighted Class Activation Mapping (Grad-CAM) computes the gradients of the model's classification score with respect to the final convolutional feature layer. By pooling these gradients, VerifAI generates an authentic spatial heatmap pinpointing the precise pixels and facial regions that triggered the REAL or FAKE classification.
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <span>Does VerifAI store or retain uploaded investigative media?</span>
+              <span class="text-mint">+</span>
+            </div>
+            <div class="accordion-body">
+              VerifAI adheres to strict enterprise privacy protocols. Uploaded media is processed entirely within a localized secure sandbox. Users retain full cryptographic custody with local SHA-256 provenance hashes and can purge history records at any time.
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- ===================================================================
+           VIEW 2: AI DETECTOR WORKSPACE
+           =================================================================== -->
+      <section id="view-detector" class="view-section">
+        
+        <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <h2 style="font-size: 1.8rem;">Media Forensic Workstation</h2>
+            <p class="text-muted" style="font-size: 0.9rem;">Start with the image detector, then explore dedicated audio and video deepfake screening below.</p>
+          </div>
+          <button class="btn btn-outline btn-sm" id="btnResetWorkspace">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            <span>Reset Workspace</span>
+          </button>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div class="upload-dropzone" id="uploadDropzone">
+          <input type="file" id="imageFileInput" accept=".jpg,.jpeg,.png,.webp" style="display: none;">
+          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <div class="upload-title">Drop your image here or browse files</div>
+          <div class="upload-subtitle">Supported formats: JPG, JPEG, PNG, WEBP (Maximum size: 15 MB)</div>
+          <button class="btn btn-primary" type="button" onclick="document.getElementById('imageFileInput').click()">Browse Media</button>
+        </div>
+
+        <!-- Sample Images Ribbon -->
+        <div class="samples-bar">
+          <span style="font-size: 0.8rem; color: var(--color-champagne); font-weight: 600;">Test Instant Samples:</span>
+          <div class="sample-chip" data-sample-name="authentic_portrait_1.jpg">
+            <span>🛡️ Authentic Portrait</span>
+          </div>
+          <div class="sample-chip" data-sample-name="authentic_id_photo_2.jpg">
+            <span>🛡️ Corporate ID Photo</span>
+          </div>
+          <div class="sample-chip" data-sample-name="deepfake_faceswap_1.jpg">
+            <span>⚠ Deepfake Face Swap</span>
+          </div>
+          <div class="sample-chip" data-sample-name="synthetic_diffusion_1.jpg">
+            <span>⚠ Diffusion AI Portrait</span>
+          </div>
+        </div>
+
+        <!-- Preview & Analysis Stage -->
+        <div class="preview-stage" id="previewStage" style="display: none;">
+          <!-- Media Preview Card -->
+          <div class="card" style="padding: 1.25rem;">
+            <div class="card-header" style="margin-bottom: 0.75rem;">
+              <div>
+                <span class="text-champagne" style="font-size: 0.72rem; text-transform: uppercase;">INSPECTED MEDIA</span>
+                <div id="previewFilename" style="font-weight: 700; font-size: 0.95rem;">sample.jpg</div>
+              </div>
+              <span class="badge badge-emerald" id="previewFilesize">-- KB</span>
+            </div>
+
+            <div class="preview-media-container">
+              <img id="previewImageElement" class="preview-img" alt="Preview Image">
+              <!-- Laser Scanning Radar Animation -->
+              <div class="scan-laser-overlay" id="scanLaserOverlay">
+                <div class="scan-laser-line"></div>
+              </div>
+            </div>
+
+            <div id="scanProgressSteps"></div>
+
+            <div style="margin-top: 1.25rem; display: flex; gap: 1rem;">
+              <button class="btn btn-primary" id="btnStartAnalysis" style="flex: 1;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <span>Run Deepfake Analysis</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Advanced Result Panel -->
+          <div class="card" id="analysisResultContainer" style="display: none; padding: 1.5rem;">
+            <!-- Verdict Banner -->
+            <div id="resultVerdictBanner" class="verdict-banner"></div>
+
+            <!-- Probability Split Bar -->
+            <div class="probability-bar-wrapper">
+              <div class="prob-labels">
+                <span id="probLabelReal" class="text-real">Authentic Score: --%</span>
+                <span id="probLabelFake" class="text-fake">Manipulated Score: --%</span>
+              </div>
+              <div class="prob-track">
+                <div id="probFillReal" class="prob-fill-real" style="width: 50%;"></div>
+                <div id="probFillFake" class="prob-fill-fake" style="width: 50%;"></div>
+              </div>
+            </div>
+
+            <!-- Meta details grid -->
+            <div style="background: var(--color-deep-forest); border: 1px solid var(--color-border-green); border-radius: 10px; padding: 1rem; margin: 1.25rem 0;">
+              <div class="grid-2" style="font-size: 0.82rem; gap: 0.75rem;">
+                <div>
+                  <span class="text-muted">Analysis ID:</span>
+                  <div id="resultAnalysisId" class="text-mint" style="font-family: var(--font-mono); font-weight: 600;">--</div>
+                </div>
+                <div>
+                  <span class="text-muted">Inference Latency:</span>
+                  <div id="resultDuration" class="text-ivory" style="font-weight: 600;">-- ms</div>
+                </div>
+                <div>
+                  <span class="text-muted">Neural Model:</span>
+                  <div id="resultModelArch" class="text-ivory">MobileNetV3-Small (PyTorch)</div>
+                </div>
+                <div>
+                  <span class="text-muted">Cryptographic Hash:</span>
+                  <div id="resultSha256" class="text-muted" style="font-family: var(--font-mono); font-size: 0.72rem;">--</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display: flex; gap: 0.85rem; flex-wrap: wrap;">
+              <button class="btn btn-outline" style="flex: 1;" data-nav-view="forensics">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <span>Deep-Dive Forensics</span>
+              </button>
+              <button class="btn btn-champagne" style="flex: 1;" onclick="ReportModule.printReport()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                <span>Download Report</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modality-grid">
+          <article class="modality-card audio-card">
+            <div class="modality-heading"><span class="modality-icon">♫</span><div><span class="text-champagne modality-kicker">VOICE & SOUND</span><h3>Audio deepfake detector</h3></div></div>
+            <p class="text-muted">A Wav2Vec2 classifier scores overlapping speech segments for real versus synthetic audio.</p>
+            <label class="modality-drop" for="audioFileInput"><span class="drop-symbol">＋</span><strong id="audioFileLabel">Choose an audio recording</strong><small>WAV, MP3, M4A, AAC, OGG, FLAC · up to 10 MB / 500 sec</small></label>
+            <input id="audioFileInput" type="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.flac" hidden>
+            <audio id="audioPreview" controls hidden></audio>
+            <div class="modality-actions"><span id="audioFileMeta" class="text-muted">No recording selected</span><button id="audioAnalyzeBtn" class="btn btn-primary" disabled>Detect audio</button></div>
+            <div id="audioResult" class="modality-result" aria-live="polite"></div>
+          </article>
+          <article class="modality-card video-card">
+            <div class="modality-heading"><span class="modality-icon">▶</span><div><span class="text-champagne modality-kicker">FRAME & MOTION</span><h3>Video deepfake detector</h3></div></div>
+            <p class="text-muted">A vision transformer classifies frames sampled evenly throughout the clip.</p>
+            <label class="modality-drop" for="videoFileInput"><span class="drop-symbol">＋</span><strong id="videoFileLabel">Choose a video clip</strong><small>MP4, MOV, WEBM, AVI, MKV · up to 25 MB / 10 min</small></label>
+            <input id="videoFileInput" type="file" accept="video/*,.mp4,.mov,.webm,.avi,.mkv" hidden>
+            <video id="videoPreview" controls muted hidden></video>
+            <div class="modality-actions"><span id="videoFileMeta" class="text-muted">No clip selected</span><button id="videoAnalyzeBtn" class="btn btn-primary" disabled>Detect video</button></div>
+            <div id="videoResult" class="modality-result" aria-live="polite"></div>
+          </article>
+        </div>
+
+      </section>
+
+
+      <!-- ===================================================================
+           VIEW 3: DIGITAL FORENSICS PANEL
+           =================================================================== -->
+      <section id="view-forensics" class="view-section">
+        <!-- Forensics Top Bar -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <h2 style="font-size: 1.8rem;" id="forensicsMediaTitle">Digital Forensics Laboratory</h2>
+              <span id="forensicsVerdictBadge" class="badge badge-champagne">Active Investigation</span>
+            </div>
+            <p class="text-muted" style="font-size: 0.88rem; margin-top: 0.25rem;">
+              Case Reference: <span id="forensicsCaseId" class="text-mint" style="font-family: var(--font-mono); font-weight: 600;">VFY-FORENSIC-001</span> • Multimodal Deepfake Tracing
+            </p>
+          </div>
+          <div style="display: flex; gap: 0.75rem;">
+            <button class="btn btn-outline btn-sm" data-nav-view="detector">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <span>Upload New Media</span>
+            </button>
+            <button class="btn btn-champagne btn-sm" onclick="ReportModule.printReport()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+              <span>Export Dossier</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Forensics Sample Switcher Toolbar -->
+        <div class="card" style="padding: 0.85rem 1.25rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+            <span style="font-size: 0.8rem; color: var(--color-champagne); font-weight: 600;">Inspect Target Case:</span>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn btn-outline btn-sm" data-forensic-sample="deepfake_faceswap_1.jpg">
+                <span>⚠ Face Swap Deepfake</span>
+              </button>
+              <button class="btn btn-outline btn-sm" data-forensic-sample="synthetic_diffusion_1.jpg">
+                <span>⚠ Diffusion AI Portrait</span>
+              </button>
+              <button class="btn btn-outline btn-sm" data-forensic-sample="authentic_portrait_1.jpg">
+                <span>🛡️ Authentic Portrait</span>
+              </button>
+              <button class="btn btn-outline btn-sm" data-forensic-sample="authentic_id_photo_2.jpg">
+                <span>🛡️ Authentic ID Photo</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Multimodal Forensics Tabs -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--color-border-green); padding-bottom: 0.75rem;">
+          <button class="btn btn-outline btn-sm active" data-forensic-tab="visual">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+            <span>Visual & Spatial (Grad-CAM / FFT / ELA)</span>
+          </button>
+          <button class="btn btn-outline btn-sm" data-forensic-tab="audio">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+            <span>Audio & Voice Forensics</span>
+          </button>
+          <button class="btn btn-outline btn-sm" data-forensic-tab="temporal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
+            <span>Temporal Sequence Forensics</span>
+          </button>
+        </div>
+
+        <!-- TAB 1: VISUAL & SPATIAL FORENSICS -->
+        <div id="forensicsVisualPanel">
+          <div class="grid-2" style="margin-bottom: 2rem;">
+            <!-- Grad-CAM Interactive Opacity Blend Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+                  <span>Grad-CAM Activation Overlay</span>
+                </h3>
+                <span class="badge badge-emerald">MobileNetV3 Layer 12</span>
+              </div>
+
+              <div class="forensics-viewer-box">
+                <img id="forensicsOriginalLayer" class="forensics-img-layer" alt="Original Media" src="/assets/samples/deepfake_faceswap_1.jpg">
+                <img id="forensicsGradCamLayer" class="forensics-img-layer" alt="Grad-CAM Heatmap" style="opacity: 0.5;">
+              </div>
+
+              <!-- Opacity Blend Controller -->
+              <div class="forensics-slider-control">
+                <span style="font-size: 0.78rem; color: var(--color-muted-text);">Original (0%)</span>
+                <input type="range" id="gradCamOpacitySlider" class="range-slider" min="0" max="100" value="50">
+                <span style="font-size: 0.78rem; color: var(--color-mint);" id="gradCamOpacityValue">50%</span>
+                <span style="font-size: 0.78rem; color: var(--color-champagne);">Heatmap (100%)</span>
+              </div>
+
+              <!-- Suspicious Regions Locator -->
+              <div style="margin-top: 1.25rem; border-top: 1px solid var(--color-border-green); padding-top: 1rem;">
+                <div style="font-size: 0.75rem; color: var(--color-champagne); text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 600;">
+                  Suspicious Facial Regions Localized
+                </div>
+                <div id="forensicsSuspiciousRegions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                  <span class="badge badge-fake">⚠ Forehead & Hairline Boundary Discontinuity</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Frequency & Compression Analysis -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+              <!-- 2D FFT Spectrogram -->
+              <div class="card">
+                <div class="card-header">
+                  <h4 class="card-title" style="font-size: 1rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    <span>2D FFT Magnitude Spectrum</span>
+                  </h4>
+                  <span class="badge badge-champagne" id="forensicsFreqRatioText">Frequency Grid</span>
+                </div>
+                <div style="display: flex; gap: 1.25rem; align-items: center;">
+                  <img id="forensicsFftImage" src="" style="width: 140px; height: 140px; border-radius: 8px; border: 1px solid var(--color-border-green); object-fit: cover; background: #071510;">
+                  <div style="font-size: 0.82rem; color: var(--color-muted-text); line-height: 1.5;">
+                    Transforms spatial pixel domain into discrete 2D frequency domain. Detects periodic checkerboard lattice artifacts caused by transposed convolution and diffusion upsamplers.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Error Level Analysis (ELA) -->
+              <div class="card">
+                <div class="card-header">
+                  <h4 class="card-title" style="font-size: 1rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                    <span>Error Level Analysis (ELA)</span>
+                  </h4>
+                  <span class="badge badge-champagne" id="forensicsElaScoreText">Compression Variance</span>
+                </div>
+                <div style="display: flex; gap: 1.25rem; align-items: center;">
+                  <img id="forensicsElaImage" src="" style="width: 140px; height: 140px; border-radius: 8px; border: 1px solid var(--color-border-green); object-fit: cover; background: #071510;">
+                  <div style="font-size: 0.82rem; color: var(--color-muted-text); line-height: 1.5;">
+                    Measures differential JPEG compression error levels. Spliced or digitally inserted face masks show distinct variance across boundary edges compared to background pixels.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Evidence Fusion & Provenance Breakdown -->
+          <div class="grid-2">
+            <!-- Metadata Table -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-champagne)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                  <span>Technical Provenance & Metadata</span>
+                </h3>
+              </div>
+              <div class="data-table-container">
+                <table class="data-table">
+                  <tbody id="forensicsMetadataBody">
+                    <!-- Populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Fusion Findings List -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  <span>Multimodal Evidence Fusion Dossier</span>
+                </h3>
+                <span class="badge badge-emerald">4-Signal Engine</span>
+              </div>
+              <ul id="forensicsFindingsList" style="list-style: none; padding: 0;">
+                <!-- Populated by JS -->
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: AUDIO ACOUSTIC FORENSICS -->
+        <div id="forensicsAudioPanel" style="display: none;">
+          <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-header">
+              <h3 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                <span>Acoustic Spectrogram & Voice Synthesis Diagnostics</span>
+              </h3>
+              <span class="badge badge-fake">Synthetic Voice Pattern Detected</span>
+            </div>
+
+            <div style="background: #091712; border: 1px solid var(--color-border-green); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--color-champagne); margin-bottom: 0.5rem;">
+                <span>Mel-Spectrogram Energy Distribution (0 Hz - 8000 Hz)</span>
+                <span>Time Domain: 0.0s - 4.2s</span>
+              </div>
+              <!-- Cyber Audio Waveform / Spectrogram Graphic -->
+              <svg viewBox="0 0 800 160" style="width: 100%; height: auto; border-radius: 8px; background: rgba(16, 43, 36, 0.6);">
+                <defs>
+                  <linearGradient id="specGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                    <stop offset="0%" stop-color="#123B2E" />
+                    <stop offset="30%" stop-color="#087A55" />
+                    <stop offset="70%" stop-color="#65C9A5" />
+                    <stop offset="100%" stop-color="#D8C39A" />
+                  </linearGradient>
+                </defs>
+                <path d="M 0 80 Q 50 10, 100 80 T 200 80 T 300 30 T 400 120 T 500 40 T 600 90 T 700 60 T 800 80 L 800 160 L 0 160 Z" fill="url(#specGrad)" opacity="0.4" />
+                <path d="M 0 80 Q 50 40, 100 80 T 200 80 T 300 60 T 400 100 T 500 70 T 600 80 T 700 70 T 800 80" fill="none" stroke="#65C9A5" stroke-width="2.5" />
+                <path d="M 0 80 Q 25 20, 75 80 T 175 80 T 275 40 T 375 110 T 475 50 T 575 85 T 675 65 T 775 80" fill="none" stroke="#D8C39A" stroke-width="1.5" stroke-dasharray="3 3" />
+                <line x1="320" y1="0" x2="320" y2="160" stroke="#D94B55" stroke-width="2" stroke-dasharray="4" />
+                <text x="330" y="30" fill="#ff7680" font-size="11" font-family="monospace">⚠ Robotic Formant Discontinuity (t=1.68s)</text>
+              </svg>
+            </div>
+
+            <div class="grid-4">
+              <div class="card" style="background: var(--color-deep-forest); padding: 1rem;">
+                <div style="font-size: 0.72rem; color: var(--color-muted-text); text-transform: uppercase;">Pitch Contour (F0)</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-fake); margin-top: 0.25rem;">Unnatural Flatness</div>
+                <div style="font-size: 0.72rem; color: var(--color-soft-mint);">Jitter: 0.12% (Organic: &gt;0.45%)</div>
+              </div>
+              <div class="card" style="background: var(--color-deep-forest); padding: 1rem;">
+                <div style="font-size: 0.72rem; color: var(--color-muted-text); text-transform: uppercase;">Harmonic-to-Noise Ratio</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-ivory); margin-top: 0.25rem;">24.8 dB</div>
+                <div style="font-size: 0.72rem; color: var(--color-soft-mint);">High frequency cutoff at 7.6 kHz</div>
+              </div>
+              <div class="card" style="background: var(--color-deep-forest); padding: 1rem;">
+                <div style="font-size: 0.72rem; color: var(--color-muted-text); text-transform: uppercase;">Voice Conversion Model</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-champagne); margin-top: 0.25rem;">RVC / VITS Traces</div>
+                <div style="font-size: 0.72rem; color: var(--color-soft-mint);">Neural Vocoder Fingerprint</div>
+              </div>
+              <div class="card" style="background: var(--color-deep-forest); padding: 1rem;">
+                <div style="font-size: 0.72rem; color: var(--color-muted-text); text-transform: uppercase;">Speech-Lip Synchrony</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-fake); margin-top: 0.25rem;">160 ms Latency</div>
+                <div style="font-size: 0.72rem; color: var(--color-soft-mint);">Viseme-Phoneme Desynchronized</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: TEMPORAL FRAME FORENSICS -->
+        <div id="forensicsTemporalPanel" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                <span>Temporal Frame-by-Frame Continuity & Motion Discontinuities</span>
+              </h3>
+              <span class="badge badge-emerald">Sequence Analysis: 60 Frames</span>
+            </div>
+
+            <div style="background: #091712; border: 1px solid var(--color-border-green); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--color-champagne); margin-bottom: 0.5rem;">
+                <span>Inter-Frame Photometric Error Delta (Frames 1 - 60)</span>
+                <span>Threshold: &lt; 8.5 Error Delta</span>
+              </div>
+              <svg viewBox="0 0 800 140" style="width: 100%; height: auto; border-radius: 8px; background: rgba(16, 43, 36, 0.6);">
+                <line x1="40" y1="90" x2="760" y2="90" stroke="#D94B55" stroke-width="1.5" stroke-dasharray="4" />
+                <text x="680" y="82" fill="#ff7680" font-size="10">Threshold (8.5)</text>
+                <polyline fill="none" stroke="#65C9A5" stroke-width="2" points="
+                  40,110 80,108 120,112 160,105 200,109 240,65 280,50 320,108 360,111 400,107 440,110 480,45 520,112 560,109 600,108 640,110 680,106 720,111 760,109
+                " />
+                <circle cx="280" cy="50" r="5" fill="#D94B55" />
+                <circle cx="480" cy="45" r="5" fill="#D94B55" />
+                <text x="260" y="38" fill="#ff7680" font-size="10">Frame 22: Jaw Seam Jitter</text>
+                <text x="460" y="32" fill="#ff7680" font-size="10">Frame 38: Blinking Artifact</text>
+              </svg>
+            </div>
+
+            <div class="grid-3">
+              <div class="card" style="background: var(--color-deep-forest); padding: 1rem;">
+                <h4 style="font-size: 0.85rem; color: var(--color-champagne); margin-bottom: 0.35rem;">Eye Blink Frequency</h4>
+                <div style="font-size: 1.15rem; font-weight: 700; color: var(--color-fake);">Abnormal (2 blinks / min)</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted-text); margin-top: 0.25rem;">Natural human rate is 15-20 blinks per minute. Synthetic avatars frequently display absent or erratic blinking rhythms.</div>
+              </div>
+
+              <div class="card" style="background: var(--color-deep-forest); padding: 1rem;">
+                <h4 style="font-size: 0.85rem; color: var(--color-champagne); margin-bottom: 0.35rem;">Optical Flow Coherence</h4>
+                <div style="font-size: 1.15rem; font-weight: 700; color: var(--color-fake);">Boundary Discontinuity</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted-text); margin-top: 0.25rem;">Face mask perimeter demonstrates optical velocity vector mismatches with underlying neck and background movement.</div>
+              </div>
+
+              <div class="card" style="background: var(--color-deep-forest); padding: 1rem;">
+                <h4 style="font-size: 0.85rem; color: var(--color-champagne); margin-bottom: 0.35rem;">Photometric Flickering</h4>
+                <div style="font-size: 1.15rem; font-weight: 700; color: var(--color-real);">Minor (0.42 rms)</div>
+                <div style="font-size: 0.75rem; color: var(--color-muted-text); margin-top: 0.25rem;">Temporal frame luminosity normalization active. Flickering subdued via bilateral temporal smoothing filter.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ===================================================================
+           VIEW 4: SCAN HISTORY
+           =================================================================== -->
+      <section id="view-history" class="view-section">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h2 style="font-size: 1.8rem;">Analysis History & Audit Log</h2>
+            <p class="text-muted" style="font-size: 0.9rem;">Review, search, and export past media verifications persisted in SQLite.</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem;">
+            <button class="btn btn-champagne btn-sm" id="btnExportHistoryJson">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Export JSON</span>
+            </button>
+            <button class="btn btn-danger btn-sm" id="btnClearHistory">Clear All Records</button>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="card" style="padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-outline btn-sm active" data-history-filter="ALL">All Media</button>
+              <button class="btn btn-outline btn-sm" data-history-filter="REAL">Authentic Only</button>
+              <button class="btn btn-outline btn-sm" data-history-filter="FAKE">Manipulated Only</button>
+            </div>
+            <div style="position: relative; width: 280px;">
+              <input type="text" id="historySearchInput" placeholder="Search filename or ID..." 
+                     style="width: 100%; padding: 0.5rem 0.85rem; border-radius: 8px; background: var(--color-deep-forest); border: 1px solid var(--color-border-green); color: var(--color-ivory); font-size: 0.85rem;">
+            </div>
+          </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Thumbnail</th>
+                <th>Filename & Ref</th>
+                <th>Classification</th>
+                <th>Confidence</th>
+                <th>Resolution</th>
+                <th>Processing</th>
+                <th>Timestamp</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+          <div id="historyEmptyState" style="text-align: center; padding: 3rem; color: var(--color-muted-text); display: none;">
+            No scan records found matching your filter criteria.
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ===================================================================
+           VIEW 5: MODEL INTELLIGENCE DASHBOARD
+           =================================================================== -->
+      <section id="view-model" class="view-section">
+        <div style="margin-bottom: 1.5rem;">
+          <h2 style="font-size: 1.8rem;">Model Intelligence & Evaluation Dashboard</h2>
+          <p class="text-muted" style="font-size: 0.9rem;">Empirical validation metrics for MobileNetV3-Small deep learning model on 10,000 multimodal benchmark samples.</p>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="grid-4" style="margin-bottom: 2rem;">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Model Accuracy</span>
+              <span class="badge badge-emerald">Overall</span>
+            </div>
+            <div class="stat-value text-mint" id="modelMetricAccuracy">94.62%</div>
+            <div class="stat-footnote">Evaluated on 10,000 test split</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Precision (Fake)</span>
+              <span class="badge badge-emerald">Class 1</span>
+            </div>
+            <div class="stat-value" id="modelMetricPrecision">93.85%</div>
+            <div class="stat-footnote">Low false-positive rate</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Recall (Sensitivity)</span>
+              <span class="badge badge-emerald">Class 1</span>
+            </div>
+            <div class="stat-value text-real" id="modelMetricRecall">95.18%</div>
+            <div class="stat-footnote">High deepfake capture rate</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">AUC-ROC Metric</span>
+              <span class="badge badge-champagne">ROC Area</span>
+            </div>
+            <div class="stat-value text-champagne" id="modelMetricAuc">0.9824</div>
+            <div class="stat-footnote">Exceptional class separability</div>
+          </div>
+        </div>
+
+        <!-- Confusion Matrix & Training Charts -->
+        <div class="grid-2" style="margin-bottom: 2rem;">
+          <!-- Confusion Matrix -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-champagne)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                <span>Empirical Confusion Matrix (N = 10,000)</span>
+              </h3>
+            </div>
+            <div class="cm-container" id="modelConfusionMatrixContainer">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- Dataset Distribution -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                <span>Benchmark Training Datasets</span>
+              </h3>
+            </div>
+            <div id="modelDatasetContainer" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Loss and Accuracy Trajectory Curves -->
+        <div id="modelTrainingChartsContainer" style="margin-bottom: 2rem;">
+          <!-- SVG Charts Rendered by JS -->
+        </div>
+
+        <!-- Architecture Layer Summary -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+              <span>MobileNetV3-Small Layer-by-Layer Architectural Profile</span>
+            </h3>
+            <span class="badge badge-emerald">1.52M Parameters</span>
+          </div>
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Layer Index</th>
+                  <th>Module Architecture Type</th>
+                  <th>Tensor Output Dimensions</th>
+                </tr>
+              </thead>
+              <tbody id="modelLayerTableBody">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ===================================================================
+           VIEW 6: HOW IT WORKS / TECHNOLOGY
+           =================================================================== -->
+      <section id="view-workflow" class="view-section">
+        <div style="margin-bottom: 1.5rem;">
+          <h2 style="font-size: 1.8rem;">How VerifAI Works: 4-Stage Architectural Pipeline</h2>
+          <p class="text-muted" style="font-size: 0.9rem;">From user image ingestion to PyTorch tensor extraction, explainable Grad-CAM backpropagation, and multimodal evidence fusion.</p>
+        </div>
+
+        <div class="grid-4" style="margin-bottom: 2.5rem;">
+          <div class="card" style="border-top: 3px solid var(--color-mint);">
+            <div style="font-size: 1.5rem; font-weight: 800; color: var(--color-mint); margin-bottom: 0.5rem;">01</div>
+            <h4 style="font-size: 1.05rem; margin-bottom: 0.5rem;">Media Ingestion</h4>
+            <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5;">
+              Client uploads image to FastAPI backend. System computes SHA-256 cryptographic checksum, validates MIME type (JPG/PNG/WEBP), and extracts hardware camera EXIF provenance.
+            </p>
+          </div>
+
+          <div class="card" style="border-top: 3px solid var(--color-emerald);">
+            <div style="font-size: 1.5rem; font-weight: 800; color: var(--color-emerald); margin-bottom: 0.5rem;">02</div>
+            <h4 style="font-size: 1.05rem; margin-bottom: 0.5rem;">260×260 Tensor Normalization</h4>
+            <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5;">
+              PyTorch transforms resize input to exact 260×260 RGB dimensions, convert to float32 tensors, and apply ImageNet zero-centered standard normalization (mean & std).
+            </p>
+          </div>
+
+          <div class="card" style="border-top: 3px solid var(--color-champagne);">
+            <div style="font-size: 1.5rem; font-weight: 800; color: var(--color-champagne); margin-bottom: 0.5rem;">03</div>
+            <h4 style="font-size: 1.05rem; margin-bottom: 0.5rem;">MobileNetV3 Inference</h4>
+            <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5;">
+              Forward pass traverses 12 Inverted Residual blocks with Squeeze-and-Excitation attention and Hard-Swish activations to extract spatial feature maps and logits for REAL vs FAKE.
+            </p>
+          </div>
+
+          <div class="card" style="border-top: 3px solid var(--color-real);">
+            <div style="font-size: 1.5rem; font-weight: 800; color: var(--color-real); margin-bottom: 0.5rem;">04</div>
+            <h4 style="font-size: 1.05rem; margin-bottom: 0.5rem;">Evidence Fusion & Grad-CAM</h4>
+            <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5;">
+              Hooks layer 12 gradients to generate authentic Grad-CAM heatmaps, computes 2D FFT magnitude spectrum and ELA compression differential, and saves verdict to SQLite.
+            </p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 2rem;">
+          <div class="card-header">
+            <h3 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-champagne)" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+              <span>Underlying Deep Learning Innovations</span>
+            </h3>
+          </div>
+          <div class="grid-2" style="font-size: 0.88rem; gap: 1.5rem; color: var(--color-ivory);">
+            <div>
+              <h4 style="color: var(--color-soft-mint); margin-bottom: 0.5rem;">Inverted Residuals & Linear Bottlenecks</h4>
+              <p class="text-muted" style="line-height: 1.6;">
+                MobileNetV3 utilizes inverted residual blocks that expand input representations to higher dimensions before depthwise separable convolutions, then project back to lower dimensions with linear activations. This preserves critical high-frequency boundary textures without manifold destruction.
+              </p>
+            </div>
+            <div>
+              <h4 style="color: var(--color-champagne); margin-bottom: 0.5rem;">Squeeze-and-Excitation (SE) Attention</h4>
+              <p class="text-muted" style="line-height: 1.6;">
+                SE blocks dynamically re-weight channel-wise feature responses by modeling interdependencies between channels. In deepfake forensics, this allows the network to focus attention selectively on chromatic aberrations and boundary seams around facial perimeters.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ===================================================================
+           VIEW 7: ABOUT & TECHNOLOGY
+           =================================================================== -->
+      <section id="view-about" class="view-section">
+        <div style="margin-bottom: 1.5rem;">
+          <h2 style="font-size: 1.8rem;">About VerifAI Platform</h2>
+          <p class="text-muted" style="font-size: 0.9rem;">Multimodal Deepfake Tracing and Detection System for Digital Authenticity and Forensic Trust.</p>
+        </div>
+
+        <div class="card" style="margin-bottom: 2rem; line-height: 1.7;">
+          <h3 style="font-size: 1.25rem; color: var(--color-champagne); margin-bottom: 1rem;">Abstract & System Overview</h3>
+          <p style="color: var(--color-ivory); margin-bottom: 1rem;">
+            <strong>VerifAI</strong> is a multimodal deepfake tracing and detection system developed to identify, analyse, and explain manipulated digital media, including images, videos, and audio files. The rapid growth of artificial intelligence-based generation and editing tools has made it increasingly difficult to distinguish authentic content from synthetic or altered media. Such content can be used to spread misinformation, commit identity fraud, manipulate public opinion, and create misleading digital evidence. Conventional verification methods generally depend on manual inspection or single-modality detection models. These approaches may be slow, difficult to scale, vulnerable to new generation techniques, and unable to provide a clear explanation for their decisions. VerifAI addresses these limitations through a unified, evidence-based forensic workflow.
+          </p>
+          <p class="text-muted" style="margin-bottom: 1rem;">
+            The system combines several complementary forms of analysis. The visual analysis module examines facial structure, skin texture, blending boundaries, lighting, shadows, reflections, and other spatial artefacts that may indicate manipulation. For audio-based media, the system analyses spectrograms and acoustic characteristics to identify synthetic voice patterns. Metadata analysis further examines file information, encoding details, timestamps, and compression traces that reveal editing history.
+          </p>
+          <p class="text-muted">
+            The outputs of these specialised modules are combined by an evidence fusion engine. Instead of relying on one prediction, the engine integrates the available signals to generate a single authenticity verdict, such as Real or Manipulated, along with a confidence score and an evidence breakdown. Heatmaps, timelines, and module-level scores help users understand which features influenced the decision rather than receiving only an unexplained classification.
+          </p>
+        </div>
+
+        <div class="grid-3" style="margin-bottom: 2rem;">
+          <div class="card">
+            <h4 style="color: var(--color-mint); margin-bottom: 0.5rem;">Core Technology Stack</h4>
+            <ul style="font-size: 0.85rem; color: var(--color-muted-text); padding-left: 1.2rem; line-height: 1.8;">
+              <li>Python 3.10 Backend</li>
+              <li>PyTorch 2.x Deep Learning Engine</li>
+              <li>MobileNetV3-Small (260×260 RGB)</li>
+              <li>FastAPI Async REST Architecture</li>
+              <li>OpenCV & SciPy FFT 2D Spectrum</li>
+              <li>SQLite Forensic Database</li>
+              <li>Custom Emerald Trust CSS & Vanilla ES6+</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4 style="color: var(--color-champagne); margin-bottom: 0.5rem;">Target Applications</h4>
+            <ul style="font-size: 0.85rem; color: var(--color-muted-text); padding-left: 1.2rem; line-height: 1.8;">
+              <li>Investigative Journalism Fact-Checking</li>
+              <li>Fintech & Banking KYC Liveness</li>
+              <li>Social Media Trust & Safety Moderation</li>
+              <li>Law Enforcement Digital Forensics</li>
+              <li>Corporate Security & CEO Impersonation</li>
+              <li>Judicial Digital Evidence Verification</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h4 style="color: var(--color-soft-mint); margin-bottom: 0.5rem;">Future Roadmap</h4>
+            <ul style="font-size: 0.85rem; color: var(--color-muted-text); padding-left: 1.2rem; line-height: 1.8;">
+              <li>Real-time RTSP/WebRTC video stream analysis</li>
+              <li>C2PA cryptographic watermark verification</li>
+              <li>Cross-modal lip-sync audio alignment</li>
+              <li>Mobile on-device edge deployment (ONNX)</li>
+              <li>Adversarial perturbation defenses</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ===================================================================
+           VIEW 8: SETTINGS & CONFIGURATION
+           =================================================================== -->
+      <section id="view-settings" class="view-section">
+        <div style="margin-bottom: 1.5rem;">
+          <h2 style="font-size: 1.8rem;">Platform Settings & Engine Parameters</h2>
+          <p class="text-muted" style="font-size: 0.9rem;">Configure classification thresholds, database retention, and inference acceleration.</p>
+        </div>
+
+        <div class="card" style="max-width: 750px; margin-bottom: 2rem;">
+          <div class="card-header">
+            <h3 class="card-title">Detection Sensitivity Threshold</h3>
+          </div>
+          <div style="margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.5rem;">
+              <span>Manipulation Classification Threshold</span>
+              <span class="text-mint" id="thresholdValDisplay">50% (Standard Balanced)</span>
+            </div>
+            <input type="range" min="30" max="80" value="50" class="range-slider" style="width: 100%;" oninput="document.getElementById('thresholdValDisplay').textContent = this.value + '%' + (this.value > 50 ? ' (High Specificity)' : ' (High Sensitivity)')">
+          </div>
+
+          <div class="card-header" style="border-top: 1px solid var(--color-border-green); padding-top: 1.25rem;">
+            <h3 class="card-title">Hardware Acceleration</h3>
+          </div>
+          <div style="font-size: 0.88rem; color: var(--color-muted-text); margin-bottom: 1.5rem;">
+            Execution Device: <strong class="text-ivory">CPU (Optimized with Intel MKL / AVX2)</strong><br>
+            Tensor Precision: <strong class="text-ivory">Float32 Single Precision</strong>
+          </div>
+
+          <div class="card-header" style="border-top: 1px solid var(--color-border-green); padding-top: 1.25rem;">
+            <h3 class="card-title">Data Privacy & Retention Policy</h3>
+          </div>
+          <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1rem;">
+            Temporary media uploaded during analysis is isolated within the local secure sandbox and can be wiped immediately.
+          </p>
+          <button class="btn btn-outline btn-sm" onclick="App.showToast('Retention policy active: Zero external cloud telemetry.', 'success')">
+            Verify Data Boundary
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Detailed Forensic Dossier Inspection Modal -->
+  <div class="modal-backdrop" id="historyDetailModal">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="HistoryModule.closeModal()">✕</button>
+      <div id="historyDetailModalContent"></div>
+    </div>
+  </div>
+
+  <!-- Premium Cybersecurity Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem;">
+          <img src="/assets/logo.svg" style="width: 28px; height: 28px;" alt="VerifAI Logo">
+          <span style="font-weight: 800; font-size: 1.25rem; letter-spacing: 0.05em; color: var(--color-ivory);">VERIFAI</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--color-muted-text); max-width: 320px; line-height: 1.6;">
+          Next-generation multimodal deepfake tracing, digital media verification, and explainable AI forensic intelligence platform.
+        </p>
+      </div>
+
+      <div>
+        <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--color-champagne); margin-bottom: 1rem; letter-spacing: 0.05em;">Forensic Tools</h4>
+        <ul style="list-style: none; font-size: 0.85rem; color: var(--color-muted-text); line-height: 2;">
+          <li><a data-nav-view="detector" style="color: inherit; text-decoration: none; cursor: pointer;">Image Detector</a></li>
+          <li><a data-nav-view="forensics" style="color: inherit; text-decoration: none; cursor: pointer;">Grad-CAM Explainability</a></li>
+          <li><a data-nav-view="forensics" style="color: inherit; text-decoration: none; cursor: pointer;">2D FFT Spectrum</a></li>
+          <li><a data-nav-view="history" style="color: inherit; text-decoration: none; cursor: pointer;">Audit History</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--color-champagne); margin-bottom: 1rem; letter-spacing: 0.05em;">Intelligence</h4>
+        <ul style="list-style: none; font-size: 0.85rem; color: var(--color-muted-text); line-height: 2;">
+          <li><a data-nav-view="model" style="color: inherit; text-decoration: none; cursor: pointer;">MobileNetV3 Metrics</a></li>
+          <li><a data-nav-view="workflow" style="color: inherit; text-decoration: none; cursor: pointer;">Pipeline Architecture</a></li>
+          <li><a data-nav-view="about" style="color: inherit; text-decoration: none; cursor: pointer;">Abstract & Objectives</a></li>
+          <li><a data-nav-view="settings" style="color: inherit; text-decoration: none; cursor: pointer;">System Settings</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="font-size: 0.85rem; text-transform: uppercase; color: var(--color-champagne); margin-bottom: 1rem; letter-spacing: 0.05em;">Forensic Security</h4>
+        <div style="font-size: 0.82rem; color: var(--color-muted-text); line-height: 1.6;">
+          <div>SHA-256 Media Checksum</div>
+          <div>C2PA Metadata Compatible</div>
+          <div>Local PyTorch Execution</div>
+          <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span class="pulse-dot"></span>
+            <span class="text-mint">Engine Ready • v1.4.0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>© 2026 VERIFAI. "See Beyond the Fake." All Rights Reserved.</div>
+      <div style="display: flex; gap: 1.5rem;">
+        <span>Digital Media Verification Protocol</span>
+        <span>Enterprise Cybersecurity</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/app.js"></script>
+  <script src="/js/detector.js"></script>
+  <script src="/js/media_detectors.js"></script>
+  <script src="/js/forensics.js"></script>
+  <script src="/js/history.js"></script>
+  <script src="/js/model_info.js"></script>
+  <script src="/js/report.js"></script>
+</body>
+</html>
