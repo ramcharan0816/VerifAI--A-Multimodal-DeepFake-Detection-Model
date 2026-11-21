@@ -1,5 +1,5 @@
 
-# VERIFAI — AI-Powered Deepfake Detection & Digital Media Verification
+# VERIFAI — AI-Powered Deepfake Detection 
 
 > **"See Beyond the Fake."**  
 > *Intelligent Media Verification & Multimodal Forensic Analysis*
