@@ -1,0 +1,1 @@
+# VerifAI--A-Multimodal-DeepFake-Detection-Model
