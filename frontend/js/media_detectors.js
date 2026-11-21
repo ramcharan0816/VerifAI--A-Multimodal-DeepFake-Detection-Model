@@ -82,7 +82,13 @@ const MediaDetectors = {
     const result = document.getElementById(`${kind}Result`);
     button.disabled = true;
     button.textContent = 'Screening…';
-    result.innerHTML = '<div class="screening-state"><span class="pulse-dot"></span> Loading the local detector and scoring media… First use may download model weights.</div>';
+    const startedAt = Date.now();
+    result.innerHTML = '<div class="screening-state"><span class="pulse-dot"></span><span>Uploading media and loading the local detector… The first run downloads model weights.</span></div>';
+    const progressTimer = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+      const message = result.querySelector('.screening-state span:last-child');
+      if (message) message.textContent = `Model is analyzing ${kind} media (${elapsed}s). Longer recordings take more time; keep this page open.`;
+    }, 8000);
     try {
       const data = new FormData();
       data.append('file', file);
@@ -101,6 +107,7 @@ const MediaDetectors = {
     } catch (error) {
       result.innerHTML = `<div class="screening-error">${this.escape(error.message)}</div>`;
     } finally {
+      clearInterval(progressTimer);
       button.disabled = false;
       button.textContent = kind === 'audio' ? 'Detect audio' : 'Detect video';
     }
