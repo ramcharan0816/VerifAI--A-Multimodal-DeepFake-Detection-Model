@@ -382,4 +382,7 @@ async def serve_spa(full_path: str):
     return JSONResponse(status_code=404, content={"message": "Frontend index.html not found"})
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=False)
+    # Render provides the listening port through PORT (default 10000).
+    # Keep 8000 as the local development default.
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=False)
