@@ -8,6 +8,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, FileResponse
+from starlette.concurrency import run_in_threadpool
 from PIL import Image
 import uvicorn
 
@@ -182,7 +183,9 @@ async def analyze_image(file: UploadFile = File(...)):
             os.remove(raw_path)
         raise HTTPException(status_code=400, detail=f"Invalid or corrupted image file: {str(e)}")
 
-    return process_image_pipeline(raw_path, pil_img, file.filename, unique_id)
+    # The model, Grad-CAM, FFT, and ELA work is CPU-bound. Keep it off the
+    # asyncio event loop so health checks and other requests remain responsive.
+    return await run_in_threadpool(process_image_pipeline, raw_path, pil_img, file.filename, unique_id)
 
 @app.post("/api/analyze/sample/{sample_name}")
 async def analyze_sample(sample_name: str):
@@ -196,7 +199,7 @@ async def analyze_sample(sample_name: str):
     shutil.copyfile(sample_path, raw_path)
     
     pil_img = Image.open(raw_path)
-    return process_image_pipeline(raw_path, pil_img, sample_name, unique_id)
+    return await run_in_threadpool(process_image_pipeline, raw_path, pil_img, sample_name, unique_id)
 
 def process_image_pipeline(raw_path: str, pil_img: Image.Image, original_filename: str, unique_id: str):
     # 1. SHA-256 calculation

@@ -166,11 +166,14 @@ const DetectorModule = {
     if (progressEl) {
       progressEl.innerHTML = `
         <div style="font-size: 0.85rem; color: var(--color-mint); margin-top: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-          <div class="pulse-dot"></div> <span>Extracting 260×260 RGB Tensor & Executing MobileNetV3-Small...</span>
+          <div class="pulse-dot"></div> <span>Connecting to the detection service. It may take up to a minute to wake after inactivity...</span>
         </div>
       `;
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 180000);
+    let analysisSucceeded = false;
     try {
       let response;
       if (this.selectedFile) {
@@ -178,11 +181,13 @@ const DetectorModule = {
         formData.append('file', this.selectedFile);
         response = await fetch(apiUrl('/api/analyze/image'), {
           method: 'POST',
-          body: formData
+          body: formData,
+          signal: controller.signal
         });
       } else {
         response = await fetch(apiUrl(`/api/analyze/sample/${encodeURIComponent(this.selectedSampleName)}`), {
-          method: 'POST'
+          method: 'POST',
+          signal: controller.signal
         });
       }
 
@@ -194,6 +199,7 @@ const DetectorModule = {
       const result = await apiJson(response);
       this.lastResult = result;
       App.activeScanData = result;
+      analysisSucceeded = true;
 
       // Render results
       this.renderResults(result);
@@ -204,15 +210,22 @@ const DetectorModule = {
 
     } catch (err) {
       console.error('Analysis error:', err);
-      App.showToast(`Error: ${err.message}`, 'error');
+      const message = err.name === 'AbortError'
+        ? 'The detection service did not finish within 3 minutes. Check that the backend is running, then try again.'
+        : err instanceof TypeError
+          ? 'Could not reach the detection service. It may be waking up or unavailable; please try again shortly.'
+          : `Error: ${err.message}`;
+      App.showToast(message, 'error');
+      if (progressEl) progressEl.textContent = message;
     } finally {
+      clearTimeout(timeoutId);
       this.isProcessing = false;
       if (laser) laser.classList.remove('scanning');
       if (analyzeBtn) {
         analyzeBtn.disabled = false;
         analyzeBtn.innerHTML = `<span>Re-Analyze Media</span>`;
       }
-      if (progressEl) progressEl.innerHTML = '';
+      if (progressEl && analysisSucceeded) progressEl.innerHTML = '';
     }
   },
 
