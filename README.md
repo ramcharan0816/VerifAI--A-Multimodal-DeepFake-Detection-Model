@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # VERIFAI — AI-Powered Deepfake Detection & Digital Media Verification
 
 > **"See Beyond the Fake."**  
