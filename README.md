@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # VERIFAI — AI-Powered Deepfake Detection & Digital Media Verification
 
 > **"See Beyond the Fake."**  
@@ -131,3 +132,6 @@ Visit **`http://localhost:8000`** in any modern web browser.
 
 ## 📜 Digital Media Forensic Certificate (PDF)
 From any scan or historical record, click **"Download Report"** or **"Print / Export PDF"** to produce an official, publication-ready Digital Media Forensic Authentication Certificate complete with case reference ID, SHA-256 cryptographic hash, Grad-CAM heatmap, 2D FFT spectrum, and tamper-evident findings.
+=======
+# VerifAI--A-Multimodal-DeepFake-Detection-Model
+>>>>>>> 81a0086a70d21838ad5ec988c8db8e7373fdd53f
