@@ -61,7 +61,7 @@ app.add_middleware(
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 MAX_FILE_SIZE = 15 * 1024 * 1024  # 15 MB
 MAX_IMAGE_PIXELS = 20_000_000
-MAX_FORENSIC_IMAGE_SIZE = (1600, 1600)
+MAX_FORENSIC_IMAGE_SIZE = (1024, 1024)
 MAX_AUDIO_SIZE = 10 * 1024 * 1024
 MAX_VIDEO_SIZE = 25 * 1024 * 1024
 
@@ -217,14 +217,16 @@ async def analyze_sample(sample_name: str):
 def process_image_pipeline(raw_path: str, pil_img: Image.Image, original_filename: str, unique_id: str):
     # Keep the forensic buffers bounded. FFT, ELA, and the Grad-CAM overlay
     # allocate several full-frame arrays, which can exhaust small instances.
-    forensic_img = pil_img.copy()
-    forensic_img.thumbnail(MAX_FORENSIC_IMAGE_SIZE, Image.Resampling.LANCZOS)
-
     # 1. SHA-256 calculation
     sha256_hash = calculate_sha256(raw_path)
     
     # 2. Metadata extraction
     metadata = extract_metadata(raw_path, pil_img)
+
+    # Resize the decoded image in place so the full-resolution pixel buffer
+    # can be released before model inference and forensic analysis.
+    pil_img.thumbnail(MAX_FORENSIC_IMAGE_SIZE, Image.Resampling.LANCZOS)
+    forensic_img = pil_img
     
     # 3. PyTorch MobileNetV3-Small Inference & Grad-CAM calculation
     model_result = model_service.predict(forensic_img)
