@@ -60,6 +60,8 @@ app.add_middleware(
 # Allowed image extensions
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 MAX_FILE_SIZE = 15 * 1024 * 1024  # 15 MB
+MAX_IMAGE_PIXELS = 20_000_000
+MAX_FORENSIC_IMAGE_SIZE = (1600, 1600)
 MAX_AUDIO_SIZE = 10 * 1024 * 1024
 MAX_VIDEO_SIZE = 25 * 1024 * 1024
 
@@ -183,9 +185,20 @@ async def analyze_image(file: UploadFile = File(...)):
             os.remove(raw_path)
         raise HTTPException(status_code=400, detail=f"Invalid or corrupted image file: {str(e)}")
 
+    if pil_img.width * pil_img.height > MAX_IMAGE_PIXELS:
+        os.remove(raw_path)
+        raise HTTPException(
+            status_code=413,
+            detail=f"Image dimensions exceed the {MAX_IMAGE_PIXELS // 1_000_000}-megapixel limit. Resize the image and try again."
+        )
+
     # The model, Grad-CAM, FFT, and ELA work is CPU-bound. Keep it off the
     # asyncio event loop so health checks and other requests remain responsive.
-    return await run_in_threadpool(process_image_pipeline, raw_path, pil_img, file.filename, unique_id)
+    try:
+        return await run_in_threadpool(process_image_pipeline, raw_path, pil_img, file.filename, unique_id)
+    except Exception as exc:
+        logger.exception("Image analysis failed for %s", unique_id)
+        raise HTTPException(status_code=500, detail="Image analysis failed. Please try another image.") from exc
 
 @app.post("/api/analyze/sample/{sample_name}")
 async def analyze_sample(sample_name: str):
@@ -202,6 +215,11 @@ async def analyze_sample(sample_name: str):
     return await run_in_threadpool(process_image_pipeline, raw_path, pil_img, sample_name, unique_id)
 
 def process_image_pipeline(raw_path: str, pil_img: Image.Image, original_filename: str, unique_id: str):
+    # Keep the forensic buffers bounded. FFT, ELA, and the Grad-CAM overlay
+    # allocate several full-frame arrays, which can exhaust small instances.
+    forensic_img = pil_img.copy()
+    forensic_img.thumbnail(MAX_FORENSIC_IMAGE_SIZE, Image.Resampling.LANCZOS)
+
     # 1. SHA-256 calculation
     sha256_hash = calculate_sha256(raw_path)
     
@@ -209,22 +227,22 @@ def process_image_pipeline(raw_path: str, pil_img: Image.Image, original_filenam
     metadata = extract_metadata(raw_path, pil_img)
     
     # 3. PyTorch MobileNetV3-Small Inference & Grad-CAM calculation
-    model_result = model_service.predict(pil_img)
+    model_result = model_service.predict(forensic_img)
     
     # 4. Generate & save Grad-CAM overlay image
     gradcam_filename = f"gradcam_{unique_id}.jpg"
     gradcam_path = os.path.join(UPLOADS_DIR, gradcam_filename)
-    generate_gradcam_overlay(pil_img, model_result["cam_resized"], gradcam_path)
+    generate_gradcam_overlay(forensic_img, model_result["cam_resized"], gradcam_path)
     
     # 5. Compute 2D FFT Magnitude Spectrum
     fft_filename = f"fft_{unique_id}.jpg"
     fft_path = os.path.join(UPLOADS_DIR, fft_filename)
-    _, high_freq_ratio = compute_fft_spectrum(pil_img, fft_path)
+    _, high_freq_ratio = compute_fft_spectrum(forensic_img, fft_path)
     
     # 6. Compute Error Level Analysis (ELA)
     ela_filename = f"ela_{unique_id}.jpg"
     ela_path = os.path.join(UPLOADS_DIR, ela_filename)
-    _, ela_score = compute_error_level_analysis(pil_img, ela_path)
+    _, ela_score = compute_error_level_analysis(forensic_img, ela_path)
     
     # 7. Multimodal Evidence Fusion
     fusion_result = fuse_forensic_evidence(
