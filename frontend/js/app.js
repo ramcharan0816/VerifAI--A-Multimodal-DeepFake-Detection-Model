@@ -126,9 +126,9 @@ const App = {
 
   async checkSystemHealth() {
     try {
-      const res = await fetch('/api/health');
+      const res = await fetch(apiUrl('/api/health'));
       if (res.ok) {
-        const data = await res.json();
+        const data = await apiJson(res);
         const indicator = document.getElementById('systemHealthText');
         if (indicator) {
           indicator.textContent = `Engine Active • PyTorch MobileNetV3 (${data.device.toUpperCase()})`;
@@ -141,9 +141,9 @@ const App = {
 
   async loadDashboardStats() {
     try {
-      const res = await fetch('/api/dashboard/stats');
+      const res = await fetch(apiUrl('/api/dashboard/stats'));
       if (res.ok) {
-        const stats = await res.json();
+        const stats = await apiJson(res);
         const totalEl = document.getElementById('statTotalScans');
         const realEl = document.getElementById('statRealScans');
         const fakeEl = document.getElementById('statFakeScans');
@@ -163,7 +163,7 @@ const App = {
             recentList.innerHTML = stats.recent_scans.map(s => `
               <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; border-bottom: 1px solid rgba(49, 83, 68, 0.4);">
                 <div style="display: flex; align-items: center; gap: 0.85rem;">
-                  <img src="${s.file_path}" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover; border: 1px solid var(--color-border-green);" />
+                  <img src="${mediaUrl(s.file_path)}" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover; border: 1px solid var(--color-border-green);" />
                   <div>
                     <div style="font-weight: 600; font-size: 0.9rem;">${s.filename}</div>
                     <div style="font-size: 0.75rem; color: var(--color-muted-text);">${new Date(s.created_at).toLocaleString()} • ${s.dimensions}</div>

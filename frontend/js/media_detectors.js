@@ -86,8 +86,8 @@ const MediaDetectors = {
     try {
       const data = new FormData();
       data.append('file', file);
-      const response = await fetch(`/api/analyze/${kind}`, { method: 'POST', body: data });
-      const payload = await response.json();
+      const response = await fetch(apiUrl(`/api/analyze/${kind}`), { method: 'POST', body: data });
+      const payload = await apiJson(response);
       if (!response.ok) throw new Error(payload.detail || 'Screening failed.');
       if (!Number.isFinite(Number(payload.confidence)) || !Number.isFinite(Number(payload.real_score)) || !Number.isFinite(Number(payload.fake_score)) || !payload.model || (kind === 'audio' && !Array.isArray(payload.segment_results)) || (kind === 'video' && !Array.isArray(payload.frame_results))) {
         throw new Error(`This server is still running an older ${kind} detector, so this scan did not run AI detection. Stop the server with Ctrl+C and restart run.bat from this VerifAI project folder, then analyze the file again.`);

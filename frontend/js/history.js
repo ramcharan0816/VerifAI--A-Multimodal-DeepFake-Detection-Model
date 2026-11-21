@@ -55,9 +55,9 @@ const HistoryModule = {
 
   async loadHistory() {
     try {
-      const res = await fetch('/api/history?limit=100');
+      const res = await fetch(apiUrl('/api/history?limit=100'));
       if (res.ok) {
-        const data = await res.json();
+        const data = await apiJson(res);
         this.historyRecords = data.scans || [];
         this.renderHistoryTable();
       }
@@ -95,7 +95,7 @@ const HistoryModule = {
     tbody.innerHTML = filtered.map(r => `
       <tr>
         <td>
-          <img src="${r.file_path}" style="width: 48px; height: 48px; border-radius: 6px; object-fit: cover; border: 1px solid var(--color-border-green);" />
+          <img src="${mediaUrl(r.file_path)}" style="width: 48px; height: 48px; border-radius: 6px; object-fit: cover; border: 1px solid var(--color-border-green);" />
         </td>
         <td>
           <div style="font-weight: 600; font-size: 0.92rem;">${r.filename}</div>
@@ -155,22 +155,22 @@ const HistoryModule = {
       <div class="grid-2" style="margin-bottom: 1.5rem;">
         <div>
           <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--color-champagne);">Original Inspected Media</h4>
-          <img src="${record.file_path}" style="width: 100%; border-radius: 10px; border: 1px solid var(--color-border-green); max-height: 280px; object-fit: contain; background: #0a1813;" />
+          <img src="${mediaUrl(record.file_path)}" style="width: 100%; border-radius: 10px; border: 1px solid var(--color-border-green); max-height: 280px; object-fit: contain; background: #0a1813;" />
         </div>
         <div>
           <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--color-champagne);">PyTorch Grad-CAM Spatial Activation</h4>
-          <img src="${record.gradcam_path}" style="width: 100%; border-radius: 10px; border: 1px solid var(--color-border-green); max-height: 280px; object-fit: contain; background: #0a1813;" />
+          <img src="${mediaUrl(record.gradcam_path)}" style="width: 100%; border-radius: 10px; border: 1px solid var(--color-border-green); max-height: 280px; object-fit: contain; background: #0a1813;" />
         </div>
       </div>
 
       <div class="grid-2" style="margin-bottom: 1.5rem;">
         <div>
           <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--color-champagne);">2D FFT Magnitude Spectrogram</h4>
-          <img src="${record.fft_path}" style="width: 100%; border-radius: 10px; border: 1px solid var(--color-border-green); max-height: 220px; object-fit: contain; background: #0a1813;" />
+          <img src="${mediaUrl(record.fft_path)}" style="width: 100%; border-radius: 10px; border: 1px solid var(--color-border-green); max-height: 220px; object-fit: contain; background: #0a1813;" />
         </div>
         <div>
           <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--color-champagne);">Error Level Analysis (ELA)</h4>
-          <img src="${record.ela_path}" style="width: 100%; border-radius: 10px; border: 1px solid var(--color-border-green); max-height: 220px; object-fit: contain; background: #0a1813;" />
+          <img src="${mediaUrl(record.ela_path)}" style="width: 100%; border-radius: 10px; border: 1px solid var(--color-border-green); max-height: 220px; object-fit: contain; background: #0a1813;" />
         </div>
       </div>
 
@@ -198,7 +198,7 @@ const HistoryModule = {
   async deleteRecord(analysisId) {
     if (!confirm(`Delete scan record ${analysisId}?`)) return;
     try {
-      const res = await fetch(`/api/history/${analysisId}`, { method: 'DELETE' });
+      const res = await fetch(apiUrl(`/api/history/${analysisId}`), { method: 'DELETE' });
       if (res.ok) {
         App.showToast(`Deleted record ${analysisId}`, 'info');
         this.historyRecords = this.historyRecords.filter(r => r.analysis_id !== analysisId);
@@ -212,7 +212,7 @@ const HistoryModule = {
 
   async clearAllHistory() {
     try {
-      const res = await fetch('/api/history', { method: 'DELETE' });
+      const res = await fetch(apiUrl('/api/history'), { method: 'DELETE' });
       if (res.ok) {
         App.showToast('All scan records cleared', 'info');
         this.historyRecords = [];

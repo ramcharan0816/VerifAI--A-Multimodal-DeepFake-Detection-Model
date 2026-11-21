@@ -61,9 +61,9 @@ const ForensicsModule = {
   async loadSample(sampleName) {
     App.showToast(`Loading forensic scan for ${sampleName}...`, 'info');
     try {
-      const res = await fetch(`/api/analyze/sample/${encodeURIComponent(sampleName)}`, { method: 'POST' });
+      const res = await fetch(apiUrl(`/api/analyze/sample/${encodeURIComponent(sampleName)}`), { method: 'POST' });
       if (res.ok) {
-        const record = await res.json();
+        const record = await apiJson(res);
         this.populateForensicsView(record);
         App.showToast(`Loaded ${record.filename} into Forensics Lab`, 'success');
       }
@@ -83,9 +83,9 @@ const ForensicsModule = {
 
     // Try fetching the latest scan from SQLite
     try {
-      const res = await fetch('/api/history?limit=1');
+      const res = await fetch(apiUrl('/api/history?limit=1'));
       if (res.ok) {
-        const data = await res.json();
+        const data = await apiJson(res);
         if (data.scans && data.scans.length > 0) {
           this.populateForensicsView(data.scans[0]);
           return;
@@ -122,10 +122,10 @@ const ForensicsModule = {
     const fftImg = document.getElementById('forensicsFftImage');
     const elaImg = document.getElementById('forensicsElaImage');
 
-    if (origLayer) origLayer.src = data.file_path || '/assets/samples/deepfake_faceswap_1.jpg';
-    if (heatmapLayer) heatmapLayer.src = data.gradcam_path || '';
-    if (fftImg) fftImg.src = data.fft_path || '';
-    if (elaImg) elaImg.src = data.ela_path || '';
+    if (origLayer) origLayer.src = mediaUrl(data.file_path) || '/assets/samples/deepfake_faceswap_1.jpg';
+    if (heatmapLayer) heatmapLayer.src = mediaUrl(data.gradcam_path) || '';
+    if (fftImg) fftImg.src = mediaUrl(data.fft_path) || '';
+    if (elaImg) elaImg.src = mediaUrl(data.ela_path) || '';
 
     // Reset slider
     const slider = document.getElementById('gradCamOpacitySlider');

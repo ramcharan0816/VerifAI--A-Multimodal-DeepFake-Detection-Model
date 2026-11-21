@@ -156,22 +156,22 @@ const ReportModule = {
           <div class="evidence-card">
             <strong>Original Inspected Media</strong>
             <br>
-            <img src="${record.file_path}" />
+            <img src="${mediaUrl(record.file_path)}" />
           </div>
           <div class="evidence-card">
             <strong>PyTorch Grad-CAM Spatial Activation</strong>
             <br>
-            <img src="${record.gradcam_path}" />
+            <img src="${mediaUrl(record.gradcam_path)}" />
           </div>
           <div class="evidence-card">
             <strong>2D FFT Magnitude Spectrogram</strong>
             <br>
-            <img src="${record.fft_path}" />
+            <img src="${mediaUrl(record.fft_path)}" />
           </div>
           <div class="evidence-card">
             <strong>Error Level Analysis (ELA)</strong>
             <br>
-            <img src="${record.ela_path}" />
+            <img src="${mediaUrl(record.ela_path)}" />
           </div>
         </div>
 

@@ -176,22 +176,22 @@ const DetectorModule = {
       if (this.selectedFile) {
         const formData = new FormData();
         formData.append('file', this.selectedFile);
-        response = await fetch('/api/analyze/image', {
+        response = await fetch(apiUrl('/api/analyze/image'), {
           method: 'POST',
           body: formData
         });
       } else {
-        response = await fetch(`/api/analyze/sample/${encodeURIComponent(this.selectedSampleName)}`, {
+        response = await fetch(apiUrl(`/api/analyze/sample/${encodeURIComponent(this.selectedSampleName)}`), {
           method: 'POST'
         });
       }
 
       if (!response.ok) {
-        const err = await response.json();
+        const err = await apiJson(response);
         throw new Error(err.detail || 'Analysis failed on backend');
       }
 
-      const result = await response.json();
+      const result = await apiJson(response);
       this.lastResult = result;
       App.activeScanData = result;
 

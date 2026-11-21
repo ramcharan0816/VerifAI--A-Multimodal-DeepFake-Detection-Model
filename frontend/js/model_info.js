@@ -11,9 +11,9 @@ const ModelInfoModule = {
 
   async loadModelInfo() {
     try {
-      const res = await fetch('/api/model/info');
+      const res = await fetch(apiUrl('/api/model/info'));
       if (res.ok) {
-        this.modelData = await res.json();
+        this.modelData = await apiJson(res);
         this.renderMetrics();
         this.renderConfusionMatrix();
         this.renderTrainingCharts();
