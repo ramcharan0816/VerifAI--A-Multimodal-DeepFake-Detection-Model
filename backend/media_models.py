@@ -1,6 +1,9 @@
 """Memory-bounded local audio and frame-level video screening adapters."""
 import time
+import re
+import subprocess
 from functools import lru_cache
+from mutagen import File as MutagenFile
 
 import cv2
 import numpy as np
@@ -24,13 +27,40 @@ def _audio_session():
     options.inter_op_num_threads = 1
     return ort.InferenceSession(model_path, sess_options=options, providers=["CPUExecutionProvider"])
 
-def analyze_audio(path):
-    import librosa
-    start = time.perf_counter()
+def _audio_duration(path, ffmpeg):
     try:
-        duration = float(librosa.get_duration(path=path))
-    except Exception as exc:
-        raise ValueError("Could not decode this audio file. Install FFmpeg for compressed audio formats, or use WAV.") from exc
+        media = MutagenFile(path)
+    except Exception:
+        media = None
+    duration = getattr(getattr(media, "info", None), "length", None)
+    if duration and duration > 0:
+        return float(duration)
+
+    # Some containers do not expose duration through Mutagen. Ask FFmpeg to
+    # inspect the header; the expected no-output error is ignored.
+    result = subprocess.run([ffmpeg, "-hide_banner", "-i", path], capture_output=True, text=True, check=False)
+    match = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", result.stderr)
+    if not match:
+        raise ValueError("Could not read the audio duration. Try converting the recording to WAV.")
+    hours, minutes, seconds = match.groups()
+    return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
+
+def _decode_audio_window(path, ffmpeg, offset_seconds, duration_seconds):
+    result = subprocess.run(
+        [ffmpeg, "-v", "error", "-threads", "1", "-ss", str(offset_seconds), "-i", path,
+         "-t", str(duration_seconds), "-vn", "-ac", "1", "-ar", "16000", "-f", "f32le", "pipe:1"],
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0 or not result.stdout:
+        raise ValueError("Could not decode an audio segment. Try converting the recording to WAV.")
+    return np.frombuffer(result.stdout, dtype="<f4")
+
+def analyze_audio(path):
+    import imageio_ffmpeg
+    start = time.perf_counter()
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    duration = _audio_duration(path, ffmpeg)
     if not np.isfinite(duration) or duration <= 0:
         raise ValueError("Audio file contains no decodable samples.")
     if duration > MAX_AUDIO_DURATION_SECONDS:
@@ -50,7 +80,9 @@ def analyze_audio(path):
     segment_results = []
     for offset_seconds in starts:
         try:
-            chunk, _ = librosa.load(path, sr=sr, mono=True, offset=offset_seconds, duration=window_seconds)
+            chunk = _decode_audio_window(path, ffmpeg, offset_seconds, window_seconds)
+        except ValueError:
+            raise
         except Exception as exc:
             raise ValueError("Could not decode an audio segment. Try converting the recording to WAV.") from exc
         if chunk.size == 0:
@@ -59,6 +91,8 @@ def analyze_audio(path):
             continue
         if len(chunk) < window:
             chunk = np.resize(chunk, window)
+        else:
+            chunk = chunk[:window]
         logits = np.asarray(session.run(None, {input_name: chunk.astype(np.float32, copy=False)[None, :]})[0]).reshape(-1)
         logits = logits - np.max(logits)
         probs = np.exp(logits) / np.sum(np.exp(logits))

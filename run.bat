@@ -7,10 +7,10 @@ echo =====================================================================
 echo.
 cd /d "%~dp0backend"
 echo [1/3] Checking audio and video detector dependencies...
-python -c "import importlib.util; assert importlib.util.find_spec('onnxruntime') and importlib.util.find_spec('huggingface_hub') and importlib.util.find_spec('librosa')" >nul 2>&1
+python -c "import importlib.util; assert importlib.util.find_spec('onnxruntime') and importlib.util.find_spec('huggingface_hub') and importlib.util.find_spec('imageio_ffmpeg')" >nul 2>&1
 if errorlevel 1 (
     echo Installing audio and video detector dependencies...
-    python -m pip install "onnxruntime>=1.18.0" "huggingface_hub>=0.23.0" "librosa>=0.10.2"
+    python -m pip install "onnxruntime>=1.18.0" "huggingface_hub>=0.23.0" "imageio-ffmpeg>=0.5.1"
     if errorlevel 1 (
         echo Detector dependencies could not be installed. Check your internet connection and try again.
         pause
