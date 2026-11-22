@@ -49,6 +49,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:8000",
         "http://127.0.0.1:8000",
+        "https://verifai-a-multimodal-deepfake-detec.vercel.app",
         *[origin.strip() for origin in os.getenv("VERIFAI_FRONTEND_ORIGINS", "").split(",") if origin.strip()],
     ],
     allow_origin_regex=r"https://.*\.vercel\.app",
@@ -61,7 +62,10 @@ app.add_middleware(
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 MAX_FILE_SIZE = 15 * 1024 * 1024  # 15 MB
 MAX_IMAGE_PIXELS = 20_000_000
-MAX_FORENSIC_IMAGE_SIZE = (1024, 1024)
+# Bound CPU-heavy forensic transforms independently of the uploaded image size.
+# The classifier still receives its fixed 260x260 input, while reducing FFT,
+# ELA, and Grad-CAM overlay work substantially on small hosted instances.
+MAX_FORENSIC_IMAGE_SIZE = (512, 512)
 MAX_AUDIO_SIZE = 10 * 1024 * 1024
 MAX_VIDEO_SIZE = 25 * 1024 * 1024
 

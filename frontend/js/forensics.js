@@ -95,8 +95,8 @@ const ForensicsModule = {
       console.warn('History lookup error:', e);
     }
 
-    // If no record exists, trigger deepfake sample analysis to populate
-    await this.loadSample('deepfake_faceswap_1.jpg');
+    // Do not start a CPU-heavy sample analysis just by opening the page.
+    // Let the user start a scan from the Detector workspace instead.
   },
 
   populateForensicsView(data) {
