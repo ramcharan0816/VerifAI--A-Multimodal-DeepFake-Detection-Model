@@ -107,6 +107,10 @@ python app.py
 
 The first audio analysis downloads the 1.28 MB AASIST checkpoint from Hugging Face and caches it locally; later analyses reuse that cache. Audio inference uses the existing PyTorch runtime. Video analysis reuses the already-loaded MobileNetV3 image model and does not download a separate model. Audio recordings up to 500 seconds and video clips up to 10 minutes are accepted. Audio and video model results are screening estimates, not proof of authenticity; AASIST may generalize poorly outside its training domain.
 
+### Deploy backend to Oracle Cloud
+
+For a higher-memory self-managed VM deployment, follow [ORACLE_DEPLOY.md](ORACLE_DEPLOY.md). It keeps the frontend on Vercel and runs the API behind Caddy with HTTPS on an Oracle VM.
+
 ### 3. Open in Browser
 Visit **`http://localhost:8000`** in any modern web browser.
 

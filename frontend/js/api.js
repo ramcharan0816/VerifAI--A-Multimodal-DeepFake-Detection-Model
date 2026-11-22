@@ -1,5 +1,5 @@
-// Send media straight to Render; Vercel's external proxy has a short request timeout.
-const VERIFAI_API_ORIGIN = 'https://verifai-a-multimodal-deepfake-detection.onrender.com';
+// Set the API host in index.html's verifai-api-origin meta tag for each deployment.
+const VERIFAI_API_ORIGIN = (window.VERIFAI_API_ORIGIN || document.querySelector('meta[name="verifai-api-origin"]')?.content || '').replace(/\/+$/, '');
 window.apiUrl = (path) => `${VERIFAI_API_ORIGIN}${path.startsWith('/') ? path : `/${path}`}`;
 window.mediaUrl = (path) => path && path.startsWith('/uploads/') ? window.apiUrl(path) : path;
 window.apiJson = async (response) => {
@@ -7,7 +7,7 @@ window.apiJson = async (response) => {
   try {
     return JSON.parse(body);
   } catch {
-    throw new Error(`The Render API returned a non-JSON response (HTTP ${response.status}). Check the Render service status and logs.`);
+    throw new Error(`The detection API returned a non-JSON response (HTTP ${response.status}). Check the backend service status and logs.`);
   }
 };
 

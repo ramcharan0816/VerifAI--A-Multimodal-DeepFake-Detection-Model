@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "verifai_history.db")
+DB_PATH = os.getenv("VERIFAI_DB_PATH", os.path.join(os.path.dirname(__file__), "verifai_history.db"))
 
 def get_connection():
     conn = sqlite3.connect(DB_PATH, timeout=10.0)
