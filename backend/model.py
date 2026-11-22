@@ -1,5 +1,10 @@
 import os
 import time
+# Limit native CPU worker pools before importing torch/numpy. On small Render
+# instances, their default per-core pools can reserve substantial extra memory.
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -9,6 +14,14 @@ import numpy as np
 from PIL import Image
 import cv2
 from typing import Dict, Any, Tuple, Optional
+
+torch.set_num_threads(1)
+try:
+    torch.set_num_interop_threads(1)
+except RuntimeError:
+    # PyTorch only allows setting inter-op threads before parallel work starts.
+    pass
+cv2.setNumThreads(1)
 
 WEIGHTS_PATH = os.path.join(os.path.dirname(__file__), "weights", "mobilenetv3_deepfake.pth")
 
@@ -32,30 +45,28 @@ class GradCAMExplainer:
         
     def _register_hooks(self):
         def forward_hook(module, inp, out):
-            self.activations = out.detach()
-            
-        def backward_hook(module, grad_in, grad_out):
-            self.gradients = grad_out[0].detach()
+            # Keep the graph only until autograd.grad obtains Grad-CAM weights.
+            self.activations = out
             
         self.target_layer.register_forward_hook(forward_hook)
-        self.target_layer.register_full_backward_hook(backward_hook)
         
     def generate(self, input_tensor: torch.Tensor, target_class: Optional[int] = None) -> np.ndarray:
         self.model.eval()
-        self.model.zero_grad()
         
-        # Forward pass
-        output = self.model(input_tensor)
+        # Keep only the graph needed for Grad-CAM. The classifier's initial
+        # scoring pass runs without gradients in predict().
+        with torch.enable_grad():
+            output = self.model(input_tensor)
         
         if target_class is None:
             target_class = torch.argmax(output, dim=1).item()
             
         score = output[0, target_class]
-        score.backward(retain_graph=True)
+        gradients = torch.autograd.grad(score, self.activations, retain_graph=False)[0]
         
         # Global average pooling of gradients: [C, H, W] -> [C]
-        pooled_grads = torch.mean(self.gradients[0], dim=[1, 2])
-        acts = self.activations[0] # [C, H, W]
+        pooled_grads = torch.mean(gradients[0].detach(), dim=[1, 2])
+        acts = self.activations[0].detach() # [C, H, W]
         
         # Linear combination of activations weighted by gradients
         cam = torch.zeros(acts.shape[1:], dtype=torch.float32)
@@ -71,7 +82,7 @@ class GradCAMExplainer:
             cam = (cam - cam_min) / (cam_max - cam_min)
         else:
             cam = np.zeros_like(cam)
-            
+        self.activations = None
         return cam
 
 class DeepfakeModelService:
@@ -130,10 +141,11 @@ class DeepfakeModelService:
         
         # Preprocess to [1, 3, 260, 260] tensor
         input_tensor = self.transform(image_pil).unsqueeze(0).to(self.device)
-        input_tensor.requires_grad_(True)
         
-        # Forward pass through MobileNetV3-Small
-        raw_logits = self.model(input_tensor)
+        # The classification pass does not need autograd; Grad-CAM performs
+        # its own gradient-enabled forward pass below.
+        with torch.no_grad():
+            raw_logits = self.model(input_tensor)
         
         # Calculate visual forensic indicators (Laplacian texture variance and boundary continuity)
         img_np = np.array(image_pil)
