@@ -83,16 +83,24 @@ const MediaDetectors = {
     button.disabled = true;
     button.textContent = 'Screening…';
     const startedAt = Date.now();
-    result.innerHTML = '<div class="screening-state"><span class="pulse-dot"></span><span>Uploading media and loading the local detector… The first run downloads model weights.</span></div>';
+    result.innerHTML = '<div class="screening-state"><span class="pulse-dot"></span><span>Connecting to the detection service…</span></div>';
+    let serviceReady = false;
     const progressTimer = setInterval(() => {
       const elapsed = Math.floor((Date.now() - startedAt) / 1000);
       const message = result.querySelector('.screening-state span:last-child');
-      if (message) message.textContent = `Model is analyzing ${kind} media (${elapsed}s). Longer recordings take more time; keep this page open.`;
+      if (message && serviceReady) message.textContent = `Model is analyzing ${kind} media (${elapsed}s). Longer recordings take more time; keep this page open.`;
     }, 8000);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 600000);
     try {
+      await waitForApiReady(controller.signal, status => {
+        const message = result.querySelector('.screening-state span:last-child');
+        if (message) message.textContent = status;
+      });
+      serviceReady = true;
       const data = new FormData();
       data.append('file', file);
-      const response = await fetch(apiUrl(`/api/analyze/${kind}`), { method: 'POST', body: data });
+      const response = await fetch(apiUrl(`/api/analyze/${kind}`), { method: 'POST', body: data, signal: controller.signal });
       const payload = await apiJson(response);
       if (!response.ok) throw new Error(payload.detail || 'Screening failed.');
       if (!Number.isFinite(Number(payload.confidence)) || !Number.isFinite(Number(payload.real_score)) || !Number.isFinite(Number(payload.fake_score)) || !payload.model || (kind === 'audio' && !Array.isArray(payload.segment_results)) || (kind === 'video' && !Array.isArray(payload.frame_results))) {
@@ -105,9 +113,13 @@ const MediaDetectors = {
       const verdictText = isFake ? 'LIKELY MANIPULATED' : 'LIKELY AUTHENTIC';
       result.innerHTML = `<div class="screening-verdict ${isFake ? 'review' : ''}"><span class="text-champagne">${kind.toUpperCase()} AI DETECTOR</span><strong>${verdictText}</strong><small>${payload.confidence}% model confidence · ${this.escape(payload.screening)}</small></div><div class="score-row"><span>Authentic ${payload.real_score}%</span><span>Synthetic ${payload.fake_score}%</span></div><div class="score-track"><span style="width:${payload.real_score}%"></span><span style="width:${payload.fake_score}%"></span></div><div class="screening-details">${detail}<p class="text-muted">${this.escape(payload.note)}</p><small class="text-muted">Model ${this.escape(payload.model)} · Case ${this.escape(payload.analysis_id)} · ${payload.processing_time_ms} ms · SHA-256 ${this.escape(payload.sha256.slice(0, 20))}…</small></div>`;
     } catch (error) {
-      result.innerHTML = `<div class="screening-error">${this.escape(error.message)}</div>`;
+      const message = error.name === 'AbortError'
+        ? `The ${kind} scan did not finish within 10 minutes. Please try a shorter file or try again later.`
+        : error.message;
+      result.innerHTML = `<div class="screening-error">${this.escape(message)}</div>`;
     } finally {
       clearInterval(progressTimer);
+      clearTimeout(timeoutId);
       button.disabled = false;
       button.textContent = kind === 'audio' ? 'Detect audio' : 'Detect video';
     }

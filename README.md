@@ -8,7 +8,7 @@
 
 ## 🛡️ Project Overview
 
-**VerifAI** is a multimodal media detection platform for images, audio, and video. It analyzes images with MobileNetV3 and forensic evidence fusion, classifies audio segments with a Wav2Vec2 detector, and classifies sampled video frames with a vision transformer.
+**VerifAI** is a multimodal media detection platform for images, audio, and video. It analyzes images with MobileNetV3 and forensic evidence fusion, screens audio with AASIST, and classifies sampled video frames with the resident MobileNetV3 model.
 
 Built with a **FastAPI** backend, **PyTorch MobileNetV3-Small** convolutional neural network (processing **260 × 260 RGB** tensors), and a **SQLite** persistent audit database, VerifAI unifies deep learning inference with explainable artificial intelligence (Grad-CAM), 2D Fourier frequency domain analysis, Error Level Analysis (ELA), and an Evidence Fusion Engine.
 
@@ -45,8 +45,8 @@ The visual identity is modeled after sophisticated cybersecurity operations cent
 - **Explainability**: Authentic Gradient-weighted Class Activation Mapping (Grad-CAM) computed on `model.features[-1]`
 - **Frequency Domain**: 2D Fast Fourier Transform (FFT) magnitude spectrum highlighting checkerboard upsampler grids
 - **Compression Artifacts**: Error Level Analysis (ELA) measuring JPEG compression differential
-- **Video screening**: up to twelve sampled frames classified with a vision transformer; audio and temporal consistency are not assessed
-- **Audio screening**: overlapping speech segments classified with a Wav2Vec2 synthetic audio detector
+- **Video screening**: up to eight sampled frames classified with MobileNetV3; audio and temporal consistency are not assessed
+- **Audio screening**: up to eight sampled speech segments classified with the lightweight AASIST anti-spoofing model
 - **Evaluation Benchmark Metrics** (10,000 samples from FaceForensics++, Celeb-DF v2, DFDC):
   - **Accuracy**: 94.62%
   - **Precision**: 93.85%
@@ -105,7 +105,7 @@ cd backend
 python app.py
 ```
 
-The first audio or video analysis downloads its model weights from Hugging Face and caches them locally; later analyses use that local cache. The audio detector supports recordings up to 500 seconds, and the video detector supports clips up to 10 minutes. Both run on the local machine. Audio and video model results are screening estimates, not proof of authenticity.
+The first audio analysis downloads the 1.62 MB AASIST ONNX model from Hugging Face and caches it locally; later analyses reuse that cache. Video analysis reuses the already-loaded MobileNetV3 image model and does not download a separate model. Audio recordings up to 500 seconds and video clips up to 10 minutes are accepted. Audio and video model results are screening estimates, not proof of authenticity; AASIST may generalize poorly outside its training domain.
 
 ### 3. Open in Browser
 Visit **`http://localhost:8000`** in any modern web browser.
@@ -118,8 +118,8 @@ Visit **`http://localhost:8000`** in any modern web browser.
 | :--- | :--- | :--- |
 | `GET` | `/api/health` | Service status, device (CPU/CUDA), model load verification |
 | `POST` | `/api/analyze/image` | Multipart image upload for 260x260 PyTorch inference |
-| `POST` | `/api/analyze/audio` | Wav2Vec2 synthetic audio classification (10 MB, 500 seconds maximum) |
-| `POST` | `/api/analyze/video` | ViT sampled-frame deepfake classification (25 MB, 10 minutes maximum) |
+| `POST` | `/api/analyze/audio` | AASIST sampled-window audio anti-spoofing classification (10 MB, 500 seconds maximum) |
+| `POST` | `/api/analyze/video` | MobileNetV3 sampled-frame deepfake classification (25 MB, 10 minutes maximum) |
 | `POST` | `/api/analyze/sample/{name}` | Analyze one of the built-in benchmark samples |
 | `GET` | `/api/history` | Query persistent SQLite scan history with search/filter |
 | `GET` | `/api/history/{id}` | Retrieve full forensic dossier for a specific scan |

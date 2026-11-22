@@ -130,6 +130,18 @@ class DeepfakeModelService:
             
         self.model.eval()
 
+    def predict_frame(self, image_pil: Image.Image) -> Dict[str, float]:
+        """Score one video frame with the resident lightweight image model."""
+        if image_pil.mode != "RGB":
+            image_pil = image_pil.convert("RGB")
+        input_tensor = self.transform(image_pil).unsqueeze(0).to(self.device)
+        with torch.no_grad():
+            probabilities = F.softmax(self.model(input_tensor), dim=1)[0]
+        return {
+            "real_score": round(float(probabilities[0].item()) * 100.0, 2),
+            "fake_score": round(float(probabilities[1].item()) * 100.0, 2),
+        }
+
     def predict(self, image_pil: Image.Image) -> Dict[str, Any]:
         start_time = time.perf_counter()
         

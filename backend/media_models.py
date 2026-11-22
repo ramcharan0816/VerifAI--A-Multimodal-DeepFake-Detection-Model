@@ -1,48 +1,31 @@
-"""Lazy local audio and frame-level video deepfake screening adapters.
-
-Weights are downloaded from Hugging Face on first use and cached by Transformers.
-Uploaded media is never sent to a hosted inference API.
-"""
-import os
+"""Memory-bounded local audio and frame-level video screening adapters."""
 import time
 from functools import lru_cache
-
-# This project runs Transformers through PyTorch. Avoid importing an optional,
-# incompatible TensorFlow install while resolving the local classifier pipeline.
-os.environ["USE_TF"] = "0"
-os.environ["USE_TORCH"] = "1"
 
 import cv2
 import numpy as np
 from PIL import Image
+from model import model_service
 
-DEFAULT_AUDIO_MODEL = "MelodyMachine/Deepfake-audio-detection-V2"
-DEFAULT_VIDEO_MODEL = "prithivMLmods/Deep-Fake-Detector-v2-Model"
+DEFAULT_AUDIO_MODEL = "SpeechAntiSpoofingBenchmarks/AASIST"
 MAX_AUDIO_DURATION_SECONDS = 500
 MAX_VIDEO_DURATION_SECONDS = 600
-MAX_VIDEO_FRAMES = 12
+MAX_VIDEO_FRAMES = 8
 
-@lru_cache(maxsize=2)
-def _pipeline(task, model_id):
-    from transformers import pipeline
-    return pipeline(task, model=model_id, device=0 if __import__("torch").cuda.is_available() else -1)
+@lru_cache(maxsize=1)
+def _audio_session():
+    """Load the small ONNX AASIST detector instead of a 378 MB Wav2Vec2 model."""
+    import onnxruntime as ort
+    from huggingface_hub import hf_hub_download
 
-def _label_scores(outputs):
-    scores = {str(item["label"]).lower(): float(item["score"]) for item in outputs}
-    fake = next((v for k, v in scores.items() if any(w in k for w in ("fake", "spoof", "synthetic", "deepfake"))), None)
-    real = next((v for k, v in scores.items() if any(w in k for w in ("real", "bonafide", "bona fide", "authentic"))), None)
-    if fake is None and len(scores) == 2:
-        # Common Hugging Face class convention for this checkpoint is LABEL_0=fake, LABEL_1=real.
-        fake = scores.get("label_0")
-        real = scores.get("label_1")
-    if fake is None or real is None:
-        raise RuntimeError(f"Model labels could not be mapped to REAL/FAKE: {sorted(scores)}")
-    total = fake + real or 1.0
-    return round(100 * real / total, 2), round(100 * fake / total, 2)
+    model_path = hf_hub_download(repo_id=DEFAULT_AUDIO_MODEL, filename="aasist.onnx")
+    options = ort.SessionOptions()
+    options.intra_op_num_threads = 1
+    options.inter_op_num_threads = 1
+    return ort.InferenceSession(model_path, sess_options=options, providers=["CPUExecutionProvider"])
 
 def analyze_audio(path):
     import librosa
-    model_id = os.getenv("VERIFAI_AUDIO_MODEL", DEFAULT_AUDIO_MODEL)
     start = time.perf_counter()
     try:
         waveform, sr = librosa.load(path, sr=16000, mono=True)
@@ -55,37 +38,45 @@ def analyze_audio(path):
         raise ValueError(f"Audio exceeds the {MAX_AUDIO_DURATION_SECONDS}-second analysis limit.")
     if float(np.max(np.abs(waveform))) < 1e-5:
         raise ValueError("Audio appears silent; no speech can be assessed.")
-    classifier = _pipeline("audio-classification", model_id)
-    # Score overlapping 5-second windows across the full recording, then average probabilities.
-    window = 5 * sr
-    hop = 4 * sr
-    starts = list(range(0, max(1, len(waveform) - window + 1), hop))
-    chunks = [waveform[i:i + window] for i in starts]
-    if len(waveform) < window:
+    # AASIST expects a fixed 64,600-sample (~4.04 second) window. Sample at
+    # most eight evenly spaced windows so long recordings stay bounded.
+    session = _audio_session()
+    window = 64600
+    if len(waveform) >= window:
+        count = min(8, max(1, 1 + (len(waveform) - window) // (4 * sr)))
+        starts = np.linspace(0, len(waveform) - window, count, dtype=int).tolist()
+    else:
         starts = [0]
-        chunks = [waveform]
-    if len(chunks) > 45:
-        indices = np.linspace(0, len(chunks) - 1, 45, dtype=int)
-        chunks = [chunks[i] for i in indices]
-        starts = [starts[i] for i in indices]
-    pairs = [_label_scores(classifier({"array": chunk, "sampling_rate": sr}, top_k=None)) for chunk in chunks]
+
+    input_name = session.get_inputs()[0].name
+    pairs = []
+    segment_results = []
+    for offset in starts:
+        chunk = waveform[offset:offset + window]
+        if len(chunk) < window:
+            chunk = np.resize(chunk, window)
+        logits = np.asarray(session.run(None, {input_name: chunk.astype(np.float32, copy=False)[None, :]})[0]).reshape(-1)
+        logits = logits - np.max(logits)
+        probs = np.exp(logits) / np.sum(np.exp(logits))
+        fake, real = float(probs[0] * 100), float(probs[1] * 100)
+        pairs.append((round(real, 2), round(fake, 2)))
+        segment_results.append({"start_seconds": round(offset / sr, 1),
+                                "end_seconds": round(min(offset + window, len(waveform)) / sr, 1),
+                                "real_score": round(real, 2), "fake_score": round(fake, 2)})
+
     real, fake = (round(float(np.mean([p[i] for p in pairs])), 2) for i in (0, 1))
     predicted = "FAKE" if fake >= real else "REAL"
-    segment_results = [{"start_seconds": round(offset / sr, 1), "end_seconds": round(min(offset + len(chunk), len(waveform)) / sr, 1),
-                        "real_score": pair[0], "fake_score": pair[1]}
-                       for offset, chunk, pair in zip(starts, chunks, pairs)]
     top_segment = max(segment_results, key=lambda segment: segment["fake_score"])
     return {"modality": "audio", "prediction": predicted, "confidence": max(real, fake),
-            "real_score": real, "fake_score": fake, "model": model_id,
-            "model_family": "Wav2Vec2 audio classification", "duration_seconds": round(duration, 2),
-            "segments": len(chunks), "segment_results": segment_results,
+            "real_score": real, "fake_score": fake, "model": DEFAULT_AUDIO_MODEL,
+            "model_family": "AASIST voice anti-spoofing", "duration_seconds": round(duration, 2),
+            "segments": len(segment_results), "segment_results": segment_results,
             "processing_time_ms": round((time.perf_counter()-start)*1000, 1),
-            "findings": [f"Scored {len(chunks)} overlapping speech windows across {duration:.1f} seconds.",
+            "findings": [f"Scored {len(segment_results)} speech windows across {duration:.1f} seconds.",
                          f"Highest synthetic score: {top_segment['fake_score']}% from {top_segment['start_seconds']:.1f}s to {top_segment['end_seconds']:.1f}s.",
-                         "Model was trained for synthetic/spoofed speech screening; it does not detect every kind of audio edit."]}
+                         "AASIST is an anti-spoofing screening model; results may be unreliable for audio outside its training domain."]}
 
 def analyze_video(path):
-    model_id = os.getenv("VERIFAI_VIDEO_FRAME_MODEL", DEFAULT_VIDEO_MODEL)
     start = time.perf_counter()
     capture = cv2.VideoCapture(path)
     if not capture.isOpened():
@@ -101,28 +92,35 @@ def analyze_video(path):
         raise ValueError("Video contains no decodable frames.")
     count = min(MAX_VIDEO_FRAMES, frame_count)
     positions = np.linspace(0, frame_count - 1, count, dtype=int)
-    frames = []
+    analyzed_positions = []
+    pairs = []
     for pos in positions:
         capture.set(cv2.CAP_PROP_POS_FRAMES, int(pos))
         ok, frame = capture.read()
         if ok:
+            height, width = frame.shape[:2]
+            scale = min(1.0, 512 / max(height, width))
+            if scale < 1.0:
+                frame = cv2.resize(frame, (max(1, int(width * scale)), max(1, int(height * scale))), interpolation=cv2.INTER_AREA)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frames.append(Image.fromarray(frame))
+            frame_image = Image.fromarray(frame)
+            scores = model_service.predict_frame(frame_image)
+            analyzed_positions.append(int(pos))
+            pairs.append((scores["real_score"], scores["fake_score"]))
+            del frame_image, frame
     capture.release()
-    if not frames:
+    if not pairs:
         raise ValueError("No video frames could be decoded.")
-    classifier = _pipeline("image-classification", model_id)
-    pairs = [_label_scores(classifier(frame, top_k=None)) for frame in frames]
     real = round(float(np.mean([p[0] for p in pairs])), 2)
     fake = round(float(np.mean([p[1] for p in pairs])), 2)
     predicted = "FAKE" if fake >= real else "REAL"
     return {"modality": "video", "prediction": predicted, "confidence": max(real, fake),
-            "real_score": real, "fake_score": fake, "model": model_id,
-            "model_family": "Vision Transformer (ViT), sampled-frame ensemble", "duration_seconds": round(duration, 2),
-            "frame_count": len(frames), "source_frame_count": frame_count,
+            "real_score": real, "fake_score": fake, "model": "VerifAI MobileNetV3-Small",
+            "model_family": "MobileNetV3-Small sampled-frame ensemble", "duration_seconds": round(duration, 2),
+            "frame_count": len(pairs), "source_frame_count": frame_count,
             "frame_results": [{"time_seconds": round(float(pos) / fps, 2) if fps > 0 else 0,
                                "fake_score": pair[1], "real_score": pair[0]}
-                              for pos, pair in zip(positions, pairs)],
+                              for pos, pair in zip(analyzed_positions, pairs)],
             "processing_time_ms": round((time.perf_counter()-start)*1000, 1),
-            "findings": [f"Classified {len(frames)} frames sampled evenly across the video.",
-                         "This is a frame-level image model applied to sampled frames; it does not assess audio, motion continuity, or lip-sync."]}
+            "findings": [f"Classified {len(pairs)} frames sampled evenly across the video.",
+                         "This uses VerifAI's image classifier on sampled frames; it does not assess audio, motion continuity, or lip-sync."]}
