@@ -16,16 +16,30 @@ MAX_VIDEO_DURATION_SECONDS = 600
 MAX_VIDEO_FRAMES = 8
 
 @lru_cache(maxsize=1)
-def _audio_session():
-    """Load the small ONNX AASIST detector instead of a 378 MB Wav2Vec2 model."""
-    import onnxruntime as ort
+def _audio_model():
+    """Load the 0.3M-parameter AASIST model in the already-used PyTorch runtime."""
     from huggingface_hub import hf_hub_download
+    import torch
+    from aasist_arch import Model
 
-    model_path = hf_hub_download(repo_id=DEFAULT_AUDIO_MODEL, filename="aasist.onnx")
-    options = ort.SessionOptions()
-    options.intra_op_num_threads = 1
-    options.inter_op_num_threads = 1
-    return ort.InferenceSession(model_path, sess_options=options, providers=["CPUExecutionProvider"])
+    model_path = hf_hub_download(repo_id=DEFAULT_AUDIO_MODEL, filename="AASIST.pth")
+    model_config = {
+        "nb_samp": 64600,
+        "first_conv": 128,
+        "filts": [70, [1, 32], [32, 32], [32, 64], [64, 64]],
+        "gat_dims": [64, 32],
+        "pool_ratios": [0.5, 0.7, 0.5, 0.5],
+        "temperatures": [2.0, 2.0, 100.0, 100.0],
+    }
+    model = Model(model_config)
+    state_dict = torch.load(model_path, map_location="cpu", weights_only=True)
+    if isinstance(state_dict, dict) and "state_dict" in state_dict:
+        state_dict = state_dict["state_dict"]
+    if state_dict and next(iter(state_dict)).startswith("module."):
+        state_dict = {key.removeprefix("module."): value for key, value in state_dict.items()}
+    model.load_state_dict(state_dict)
+    model.eval()
+    return model
 
 def _audio_duration(path, ffmpeg):
     try:
@@ -74,8 +88,8 @@ def analyze_audio(path):
     window_seconds = window / sr
     count = min(8, max(1, int(np.ceil(duration / window_seconds))))
     starts = np.linspace(0.0, max(0.0, duration - window_seconds), count).tolist()
-    session = _audio_session()
-    input_name = session.get_inputs()[0].name
+    model = _audio_model()
+    import torch
     pairs = []
     segment_results = []
     for offset_seconds in starts:
@@ -93,9 +107,10 @@ def analyze_audio(path):
             chunk = np.resize(chunk, window)
         else:
             chunk = chunk[:window]
-        logits = np.asarray(session.run(None, {input_name: chunk.astype(np.float32, copy=False)[None, :]})[0]).reshape(-1)
-        logits = logits - np.max(logits)
-        probs = np.exp(logits) / np.sum(np.exp(logits))
+        input_tensor = torch.from_numpy(chunk.astype(np.float32, copy=False)[None, :])
+        with torch.no_grad():
+            _, logits = model(input_tensor)
+            probs = torch.softmax(logits, dim=1)[0].cpu().numpy()
         fake, real = float(probs[0] * 100), float(probs[1] * 100)
         pairs.append((round(real, 2), round(fake, 2)))
         segment_results.append({"start_seconds": round(offset_seconds, 1),

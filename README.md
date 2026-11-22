@@ -105,7 +105,7 @@ cd backend
 python app.py
 ```
 
-The first audio analysis downloads the 1.62 MB AASIST ONNX model from Hugging Face and caches it locally; later analyses reuse that cache. Video analysis reuses the already-loaded MobileNetV3 image model and does not download a separate model. Audio recordings up to 500 seconds and video clips up to 10 minutes are accepted. Audio and video model results are screening estimates, not proof of authenticity; AASIST may generalize poorly outside its training domain.
+The first audio analysis downloads the 1.28 MB AASIST checkpoint from Hugging Face and caches it locally; later analyses reuse that cache. Audio inference uses the existing PyTorch runtime. Video analysis reuses the already-loaded MobileNetV3 image model and does not download a separate model. Audio recordings up to 500 seconds and video clips up to 10 minutes are accepted. Audio and video model results are screening estimates, not proof of authenticity; AASIST may generalize poorly outside its training domain.
 
 ### 3. Open in Browser
 Visit **`http://localhost:8000`** in any modern web browser.
