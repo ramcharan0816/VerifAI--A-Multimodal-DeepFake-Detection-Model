@@ -28,31 +28,35 @@ def analyze_audio(path):
     import librosa
     start = time.perf_counter()
     try:
-        waveform, sr = librosa.load(path, sr=16000, mono=True)
+        duration = float(librosa.get_duration(path=path))
     except Exception as exc:
         raise ValueError("Could not decode this audio file. Install FFmpeg for compressed audio formats, or use WAV.") from exc
-    if waveform.size == 0:
-        raise ValueError("Audio file contains no samples.")
-    duration = len(waveform) / sr
+    if not np.isfinite(duration) or duration <= 0:
+        raise ValueError("Audio file contains no decodable samples.")
     if duration > MAX_AUDIO_DURATION_SECONDS:
         raise ValueError(f"Audio exceeds the {MAX_AUDIO_DURATION_SECONDS}-second analysis limit.")
-    if float(np.max(np.abs(waveform))) < 1e-5:
-        raise ValueError("Audio appears silent; no speech can be assessed.")
-    # AASIST expects a fixed 64,600-sample (~4.04 second) window. Sample at
-    # most eight evenly spaced windows so long recordings stay bounded.
-    session = _audio_session()
-    window = 64600
-    if len(waveform) >= window:
-        count = min(8, max(1, 1 + (len(waveform) - window) // (4 * sr)))
-        starts = np.linspace(0, len(waveform) - window, count, dtype=int).tolist()
-    else:
-        starts = [0]
 
+    # Decode only the sampled windows instead of retaining up to 500 seconds
+    # of PCM audio in memory. This is important on small hosted instances.
+    # AASIST expects a fixed 64,600-sample (~4.04 second) window.
+    window = 64600
+    sr = 16000
+    window_seconds = window / sr
+    count = min(8, max(1, int(np.ceil(duration / window_seconds))))
+    starts = np.linspace(0.0, max(0.0, duration - window_seconds), count).tolist()
+    session = _audio_session()
     input_name = session.get_inputs()[0].name
     pairs = []
     segment_results = []
-    for offset in starts:
-        chunk = waveform[offset:offset + window]
+    for offset_seconds in starts:
+        try:
+            chunk, _ = librosa.load(path, sr=sr, mono=True, offset=offset_seconds, duration=window_seconds)
+        except Exception as exc:
+            raise ValueError("Could not decode an audio segment. Try converting the recording to WAV.") from exc
+        if chunk.size == 0:
+            continue
+        if float(np.max(np.abs(chunk))) < 1e-5:
+            continue
         if len(chunk) < window:
             chunk = np.resize(chunk, window)
         logits = np.asarray(session.run(None, {input_name: chunk.astype(np.float32, copy=False)[None, :]})[0]).reshape(-1)
@@ -60,10 +64,12 @@ def analyze_audio(path):
         probs = np.exp(logits) / np.sum(np.exp(logits))
         fake, real = float(probs[0] * 100), float(probs[1] * 100)
         pairs.append((round(real, 2), round(fake, 2)))
-        segment_results.append({"start_seconds": round(offset / sr, 1),
-                                "end_seconds": round(min(offset + window, len(waveform)) / sr, 1),
+        segment_results.append({"start_seconds": round(offset_seconds, 1),
+                                "end_seconds": round(min(offset_seconds + len(chunk) / sr, duration), 1),
                                 "real_score": round(real, 2), "fake_score": round(fake, 2)})
 
+    if not pairs:
+        raise ValueError("Audio appears silent or contains no usable speech segments.")
     real, fake = (round(float(np.mean([p[i] for p in pairs])), 2) for i in (0, 1))
     predicted = "FAKE" if fake >= real else "REAL"
     top_segment = max(segment_results, key=lambda segment: segment["fake_score"])
