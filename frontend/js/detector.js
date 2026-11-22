@@ -166,7 +166,7 @@ const DetectorModule = {
     if (progressEl) {
       progressEl.innerHTML = `
         <div style="font-size: 0.85rem; color: var(--color-mint); margin-top: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-          <div class="pulse-dot"></div> <span>Connecting to the detection service. It may take up to a minute to wake after inactivity...</span>
+          <div class="pulse-dot"></div> <span>Connecting to the detection service...</span>
         </div>
       `;
     }
@@ -175,6 +175,12 @@ const DetectorModule = {
     const timeoutId = setTimeout(() => controller.abort(), 180000);
     let analysisSucceeded = false;
     try {
+      await waitForApiReady(controller.signal, (status) => {
+        if (progressEl) {
+          progressEl.innerHTML = `<div style="font-size: 0.85rem; color: var(--color-mint); margin-top: 0.75rem; display: flex; align-items: center; gap: 0.5rem;"><div class="pulse-dot"></div><span>${status}</span></div>`;
+        }
+      });
+
       let response;
       if (this.selectedFile) {
         const formData = new FormData();
