@@ -65,6 +65,13 @@ const App = {
       this.loadDashboardStats();
       if (window.HistoryModule) { window.HistoryModule.historyRecords = []; window.HistoryModule.renderHistoryTable(); }
     });
+    window.addEventListener('verifai-auth-required', () => {
+      localStorage.removeItem('verifai_auth_token');
+      localStorage.removeItem('verifai_user');
+      profileDropdown.hidden = true;
+      setAuthView();
+      document.getElementById('authError').textContent = 'Your session is no longer valid. Sign in again to continue.';
+    });
     document.addEventListener('click', event => {
       if (!document.getElementById('accountMenu').contains(event.target)) {
         profileDropdown.hidden = true;

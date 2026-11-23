@@ -57,5 +57,11 @@ window.apiFetch = (url, options = {}) => {
   const headers = new Headers(options.headers || {});
   const token = window.authToken();
   if (token) headers.set('Authorization', `Bearer ${token}`);
-  return fetch(url, { ...options, headers });
+  return fetch(url, { ...options, headers }).then(response => {
+    const pathname = new URL(url, window.location.href).pathname;
+    if (response.status === 401 && pathname.startsWith('/api/') && !['/api/auth/login', '/api/auth/register'].includes(pathname)) {
+      window.dispatchEvent(new Event('verifai-auth-required'));
+    }
+    return response;
+  });
 };
