@@ -100,7 +100,7 @@ const MediaDetectors = {
       serviceReady = true;
       const data = new FormData();
       data.append('file', file);
-      const response = await fetch(apiUrl(`/api/analyze/${kind}`), { method: 'POST', body: data, signal: controller.signal });
+      const response = await apiFetch(apiUrl(`/api/analyze/${kind}`), { method: 'POST', body: data, signal: controller.signal });
       const payload = await apiJson(response);
       if (!response.ok) throw new Error(payload.detail || 'Screening failed.');
       if (!Number.isFinite(Number(payload.confidence)) || !Number.isFinite(Number(payload.real_score)) || !Number.isFinite(Number(payload.fake_score)) || !payload.model || (kind === 'audio' && !Array.isArray(payload.segment_results)) || (kind === 'video' && !Array.isArray(payload.frame_results))) {

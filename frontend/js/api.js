@@ -48,3 +48,11 @@ window.waitForApiReady = async (signal, onStatus) => {
 
   throw new Error('The detection service is still starting after 90 seconds. Please try again shortly.');
 };
+
+window.authToken = () => localStorage.getItem('verifai_auth_token') || '';
+window.apiFetch = (url, options = {}) => {
+  const headers = new Headers(options.headers || {});
+  const token = window.authToken();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  return fetch(url, { ...options, headers });
+};

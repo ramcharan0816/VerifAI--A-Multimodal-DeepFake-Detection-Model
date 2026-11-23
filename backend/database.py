@@ -14,6 +14,10 @@ def get_connection():
 def init_db():
     conn = get_connection()
     cursor = conn.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, created_at TEXT NOT NULL)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS app_config (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+    if not cursor.execute("SELECT 1 FROM app_config WHERE key = ?", ("token_secret",)).fetchone():
+        cursor.execute("INSERT INTO app_config(key, value) VALUES (?, ?)", ("token_secret", os.urandom(32).hex()))
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS scans (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,8 +40,12 @@ def init_db():
         created_at TEXT NOT NULL
     )
     """)
+    columns = {row[1] for row in cursor.execute("PRAGMA table_info(scans)").fetchall()}
+    if "user_id" not in columns:
+        cursor.execute("ALTER TABLE scans ADD COLUMN user_id INTEGER REFERENCES users(id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_prediction ON scans(prediction)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_created_at ON scans(created_at)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_scans_user_id ON scans(user_id)")
     conn.commit()
     conn.close()
 
@@ -54,8 +62,8 @@ def save_scan(data: Dict[str, Any]) -> Dict[str, Any]:
         analysis_id, filename, file_path, file_size, dimensions,
         format, sha256, prediction, confidence, real_score,
         fake_score, processing_time_ms, gradcam_path, fft_path,
-        ela_path, forensic_data, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ela_path, forensic_data, created_at, user_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         analysis_id,
         data.get("filename", "unknown.jpg"),
@@ -73,7 +81,8 @@ def save_scan(data: Dict[str, Any]) -> Dict[str, Any]:
         data.get("fft_path", ""),
         data.get("ela_path", ""),
         forensic_str,
-        now
+        now,
+        data.get("user_id")
     ))
     
     inserted_id = cursor.lastrowid
@@ -91,12 +100,12 @@ def save_scan(data: Dict[str, Any]) -> Dict[str, Any]:
             pass
     return res
 
-def get_scans(limit: int = 50, offset: int = 0, status: Optional[str] = None, search: Optional[str] = None) -> List[Dict[str, Any]]:
+def get_scans(user_id: int, limit: int = 50, offset: int = 0, status: Optional[str] = None, search: Optional[str] = None) -> List[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
     
-    query = "SELECT * FROM scans WHERE 1=1"
-    params = []
+    query = "SELECT * FROM scans WHERE user_id = ?"
+    params = [user_id]
     
     if status and status.upper() in ["REAL", "FAKE"]:
         query += " AND prediction = ?"
@@ -124,14 +133,14 @@ def get_scans(limit: int = 50, offset: int = 0, status: Optional[str] = None, se
         results.append(item)
     return results
 
-def get_scan_by_id(scan_id: Any) -> Optional[Dict[str, Any]]:
+def get_scan_by_id(scan_id: Any, user_id: int) -> Optional[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
     
     if str(scan_id).isdigit():
-        cursor.execute("SELECT * FROM scans WHERE id = ?", (int(scan_id),))
+        cursor.execute("SELECT * FROM scans WHERE id = ? AND user_id = ?", (int(scan_id), user_id))
     else:
-        cursor.execute("SELECT * FROM scans WHERE analysis_id = ?", (str(scan_id),))
+        cursor.execute("SELECT * FROM scans WHERE analysis_id = ? AND user_id = ?", (str(scan_id), user_id))
         
     row = cursor.fetchone()
     conn.close()
@@ -146,46 +155,46 @@ def get_scan_by_id(scan_id: Any) -> Optional[Dict[str, Any]]:
             pass
     return item
 
-def delete_scan(scan_id: Any) -> bool:
+def delete_scan(scan_id: Any, user_id: int) -> bool:
     conn = get_connection()
     cursor = conn.cursor()
     if str(scan_id).isdigit():
-        cursor.execute("DELETE FROM scans WHERE id = ?", (int(scan_id),))
+        cursor.execute("DELETE FROM scans WHERE id = ? AND user_id = ?", (int(scan_id), user_id))
     else:
-        cursor.execute("DELETE FROM scans WHERE analysis_id = ?", (str(scan_id),))
+        cursor.execute("DELETE FROM scans WHERE analysis_id = ? AND user_id = ?", (str(scan_id), user_id))
     deleted = cursor.rowcount > 0
     conn.commit()
     conn.close()
     return deleted
 
-def clear_all_scans() -> int:
+def clear_all_scans(user_id: int) -> int:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM scans")
+    cursor.execute("DELETE FROM scans WHERE user_id = ?", (user_id,))
     count = cursor.rowcount
     conn.commit()
     conn.close()
     return count
 
-def get_stats() -> Dict[str, Any]:
+def get_stats(user_id: int) -> Dict[str, Any]:
     conn = get_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT COUNT(*) FROM scans")
+    cursor.execute("SELECT COUNT(*) FROM scans WHERE user_id = ?", (user_id,))
     total_scans = cursor.fetchone()[0]
     
-    cursor.execute("SELECT COUNT(*) FROM scans WHERE prediction = 'REAL'")
+    cursor.execute("SELECT COUNT(*) FROM scans WHERE user_id = ? AND prediction = 'REAL'", (user_id,))
     real_count = cursor.fetchone()[0]
     
-    cursor.execute("SELECT COUNT(*) FROM scans WHERE prediction = 'FAKE'")
+    cursor.execute("SELECT COUNT(*) FROM scans WHERE user_id = ? AND prediction = 'FAKE'", (user_id,))
     fake_count = cursor.fetchone()[0]
     
-    cursor.execute("SELECT AVG(confidence), AVG(processing_time_ms) FROM scans")
+    cursor.execute("SELECT AVG(confidence), AVG(processing_time_ms) FROM scans WHERE user_id = ?", (user_id,))
     avg_row = cursor.fetchone()
     avg_conf = round(avg_row[0] or 0.0, 2)
     avg_time = round(avg_row[1] or 0.0, 1)
     
-    cursor.execute("SELECT * FROM scans ORDER BY id DESC LIMIT 5")
+    cursor.execute("SELECT * FROM scans WHERE user_id = ? ORDER BY id DESC LIMIT 5", (user_id,))
     recent_rows = cursor.fetchall()
     conn.close()
     
@@ -209,3 +218,33 @@ def get_stats() -> Dict[str, Any]:
     }
 
 init_db()
+
+
+def create_user(email: str, password_hash: str) -> Optional[int]:
+    conn = get_connection()
+    try:
+        cursor = conn.execute("INSERT INTO users(email, password_hash, created_at) VALUES (?, ?, ?)", (email, password_hash, datetime.utcnow().isoformat() + "Z"))
+        conn.commit()
+        return cursor.lastrowid
+    except sqlite3.IntegrityError:
+        return None
+    finally:
+        conn.close()
+
+def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
+    conn = get_connection()
+    row = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
+    conn = get_connection()
+    row = conn.execute("SELECT id, email FROM users WHERE id = ?", (user_id,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+def get_token_secret() -> str:
+    conn = get_connection()
+    row = conn.execute("SELECT value FROM app_config WHERE key = ?", ("token_secret",)).fetchone()
+    conn.close()
+    return row[0]

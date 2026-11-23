@@ -185,13 +185,13 @@ const DetectorModule = {
       if (this.selectedFile) {
         const formData = new FormData();
         formData.append('file', this.selectedFile);
-        response = await fetch(apiUrl('/api/analyze/image'), {
+        response = await apiFetch(apiUrl('/api/analyze/image'), {
           method: 'POST',
           body: formData,
           signal: controller.signal
         });
       } else {
-        response = await fetch(apiUrl(`/api/analyze/sample/${encodeURIComponent(this.selectedSampleName)}`), {
+        response = await apiFetch(apiUrl(`/api/analyze/sample/${encodeURIComponent(this.selectedSampleName)}`), {
           method: 'POST',
           signal: controller.signal
         });

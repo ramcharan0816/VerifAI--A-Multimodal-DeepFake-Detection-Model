@@ -2,9 +2,15 @@ import os
 import logging
 import shutil
 import uuid
+import base64
+import hashlib
+import hmac
+import json
+import re
+import secrets
 from datetime import datetime
 from urllib.parse import quote
-from fastapi import FastAPI, File, UploadFile, HTTPException, Query
+from fastapi import FastAPI, File, UploadFile, HTTPException, Query, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, FileResponse
@@ -12,7 +18,7 @@ from starlette.concurrency import run_in_threadpool
 from PIL import Image
 import uvicorn
 
-from database import init_db, save_scan, get_scans, get_scan_by_id, delete_scan, clear_all_scans, get_stats
+from database import init_db, save_scan, get_scans, get_scan_by_id, delete_scan, clear_all_scans, get_stats, create_user, get_user_by_email, get_user_by_id, get_token_secret
 from model import model_service
 from media_models import analyze_audio as run_audio_model, analyze_video as run_video_model
 from forensics import (
@@ -103,8 +109,66 @@ def repair_sample_preview(scan):
     return scan
 
 
+def _password_hash(password: str, salt: bytes = None) -> str:
+    salt = salt or secrets.token_bytes(16)
+    derived = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=2**14, r=8, p=1)
+    return f"{salt.hex()}${derived.hex()}"
+
+def _password_matches(password: str, encoded: str) -> bool:
+    try:
+        salt_hex, expected = encoded.split("$", 1)
+        return hmac.compare_digest(_password_hash(password, bytes.fromhex(salt_hex)).split("$", 1)[1], expected)
+    except (ValueError, TypeError):
+        return False
+
+def _issue_token(user_id: int) -> str:
+    payload = base64.urlsafe_b64encode(json.dumps({"sub": user_id, "exp": int(datetime.utcnow().timestamp()) + 60 * 60 * 24 * 14}, separators=(",", ":")).encode()).rstrip(b"=").decode()
+    signature = hmac.new(get_token_secret().encode(), payload.encode(), hashlib.sha256).digest()
+    return payload + "." + base64.urlsafe_b64encode(signature).rstrip(b"=").decode()
+
+async def require_user(authorization: str = Header(default="")):
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        raise HTTPException(status_code=401, detail="Please sign in to continue.")
+    try:
+        payload, signature = token.split(".", 1)
+        expected = base64.urlsafe_b64encode(hmac.new(get_token_secret().encode(), payload.encode(), hashlib.sha256).digest()).rstrip(b"=").decode()
+        if not hmac.compare_digest(signature, expected):
+            raise ValueError("signature")
+        claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+        if int(claims["exp"]) < int(datetime.utcnow().timestamp()):
+            raise ValueError("expired")
+        user = get_user_by_id(int(claims["sub"]))
+        if not user:
+            raise ValueError("missing user")
+        return user
+    except (ValueError, KeyError, TypeError, json.JSONDecodeError):
+        raise HTTPException(status_code=401, detail="Your session expired. Please sign in again.")
+
+@app.post("/api/auth/register")
+async def register_account(payload: dict):
+    email = str(payload.get("email", "")).strip().lower()
+    password = payload.get("password", "")
+    if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email) or len(email) > 254:
+        raise HTTPException(status_code=422, detail="Enter a valid email address.")
+    if not isinstance(password, str) or len(password) < 8 or len(password) > 128:
+        raise HTTPException(status_code=422, detail="Password must be 8 to 128 characters.")
+    user_id = create_user(email, _password_hash(password))
+    if not user_id:
+        raise HTTPException(status_code=409, detail="An account with this email already exists.")
+    return {"token": _issue_token(user_id), "user": {"id": user_id, "email": email}}
+
+@app.post("/api/auth/login")
+async def login_account(payload: dict):
+    email = str(payload.get("email", "")).strip().lower()
+    password = payload.get("password", "")
+    user = get_user_by_email(email)
+    if not user or not isinstance(password, str) or not _password_matches(password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Email or password is incorrect.")
+    return {"token": _issue_token(user["id"]), "user": {"id": user["id"], "email": user["email"]}}
+
 @app.post("/api/analyze/audio")
-async def analyze_audio(file: UploadFile = File(...)):
+async def analyze_audio(file: UploadFile = File(...), user: dict = Depends(require_user)):
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in {".wav", ".mp3", ".m4a", ".aac", ".ogg", ".flac"}:
         raise HTTPException(status_code=415, detail="Supported audio formats: WAV, MP3, M4A, AAC, OGG, FLAC.")
@@ -117,13 +181,16 @@ async def analyze_audio(file: UploadFile = File(...)):
         except Exception as exc:
             logger.exception("Audio AI detector failed during decode, model loading, or inference")
             raise HTTPException(status_code=503, detail=f"Audio detector could not start or load its model: {exc}") from exc
-        return {"analysis_id": f"VFY-AUD-{uuid.uuid4().hex[:10].upper()}", "media_type": "audio", "filename": file.filename, "size_bytes": size, "sha256": calculate_sha256(path), "screening": result["model_family"], "verdict": result["prediction"], "confidence": result["confidence"], "real_score": result["real_score"], "fake_score": result["fake_score"], "duration_seconds": result["duration_seconds"], "segments_analyzed": result["segments"], "segment_results": result["segment_results"], "model": result["model"], "processing_time_ms": result["processing_time_ms"], "signals": result["findings"], "note": "AASIST is an anti-spoofing screening model trained on ASVspoof2019 LA; scores are not proof and may generalize poorly to audio outside that domain."}
-    finally:
+        payload = {"analysis_id": f"VFY-AUD-{uuid.uuid4().hex[:10].upper()}", "media_type": "audio", "filename": file.filename, "size_bytes": size, "sha256": calculate_sha256(path), "screening": result["model_family"], "verdict": result["prediction"], "confidence": result["confidence"], "real_score": result["real_score"], "fake_score": result["fake_score"], "duration_seconds": result["duration_seconds"], "segments_analyzed": result["segments"], "segment_results": result["segment_results"], "model": result["model"], "processing_time_ms": result["processing_time_ms"], "signals": result["findings"], "note": "AASIST is an anti-spoofing screening model trained on ASVspoof2019 LA; scores are not proof and may generalize poorly to audio outside that domain."}
+        save_scan({"analysis_id": payload["analysis_id"], "user_id": user["id"], "filename": file.filename, "file_path": f"/uploads/{os.path.basename(path)}", "file_size": size, "dimensions": f"{result['duration_seconds']} sec", "format": ext.lstrip('.').upper(), "sha256": payload["sha256"], "prediction": payload["verdict"], "confidence": payload["confidence"], "real_score": payload["real_score"], "fake_score": payload["fake_score"], "processing_time_ms": payload["processing_time_ms"], "forensic_data": {"media_type": "audio", "model": payload["model"], "signals": payload["signals"], "note": payload["note"]}})
+        return payload
+    except Exception:
         if os.path.exists(path): os.remove(path)
+        raise
 
 
 @app.post("/api/analyze/video")
-async def analyze_video(file: UploadFile = File(...)):
+async def analyze_video(file: UploadFile = File(...), user: dict = Depends(require_user)):
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in {".mp4", ".mov", ".webm", ".avi", ".mkv"}:
         raise HTTPException(status_code=415, detail="Supported video formats: MP4, MOV, WEBM, AVI, MKV.")
@@ -136,9 +203,12 @@ async def analyze_video(file: UploadFile = File(...)):
         except Exception as exc:
             logger.exception("Video AI detector failed during decode, model loading, or inference")
             raise HTTPException(status_code=503, detail=f"Video detector could not start or load its model: {exc}") from exc
-        return {"analysis_id": f"VFY-VID-{uuid.uuid4().hex[:10].upper()}", "media_type": "video", "filename": file.filename, "size_bytes": size, "sha256": calculate_sha256(path), "screening": result["model_family"], "verdict": result["prediction"], "confidence": result["confidence"], "real_score": result["real_score"], "fake_score": result["fake_score"], "duration_seconds": result["duration_seconds"], "frames_analyzed": result["frame_count"], "frame_results": result["frame_results"], "model": result["model"], "processing_time_ms": result["processing_time_ms"], "signals": result["findings"], "note": "This model classifies sampled visual frames. It does not assess audio, motion continuity, or lip-sync; treat its scores as screening estimates, not proof."}
-    finally:
+        payload = {"analysis_id": f"VFY-VID-{uuid.uuid4().hex[:10].upper()}", "media_type": "video", "filename": file.filename, "size_bytes": size, "sha256": calculate_sha256(path), "screening": result["model_family"], "verdict": result["prediction"], "confidence": result["confidence"], "real_score": result["real_score"], "fake_score": result["fake_score"], "duration_seconds": result["duration_seconds"], "frames_analyzed": result["frame_count"], "frame_results": result["frame_results"], "model": result["model"], "processing_time_ms": result["processing_time_ms"], "signals": result["findings"], "note": "This model classifies sampled visual frames. It does not assess audio, motion continuity, or lip-sync; treat its scores as screening estimates, not proof."}
+        save_scan({"analysis_id": payload["analysis_id"], "user_id": user["id"], "filename": file.filename, "file_path": f"/uploads/{os.path.basename(path)}", "file_size": size, "dimensions": f"{result['duration_seconds']} sec", "format": ext.lstrip('.').upper(), "sha256": payload["sha256"], "prediction": payload["verdict"], "confidence": payload["confidence"], "real_score": payload["real_score"], "fake_score": payload["fake_score"], "processing_time_ms": payload["processing_time_ms"], "forensic_data": {"media_type": "video", "model": payload["model"], "signals": payload["signals"], "note": payload["note"]}})
+        return payload
+    except Exception:
         if os.path.exists(path): os.remove(path)
+        raise
 
 @app.get("/api/health")
 async def health_check():
@@ -151,7 +221,7 @@ async def health_check():
     }
 
 @app.post("/api/analyze/image")
-async def analyze_image(file: UploadFile = File(...)):
+async def analyze_image(file: UploadFile = File(...), user: dict = Depends(require_user)):
     # Validate extension
     file_ext = os.path.splitext(file.filename)[1].lower()
     if file_ext not in ALLOWED_EXTENSIONS:
@@ -199,13 +269,13 @@ async def analyze_image(file: UploadFile = File(...)):
     # The model, Grad-CAM, FFT, and ELA work is CPU-bound. Keep it off the
     # asyncio event loop so health checks and other requests remain responsive.
     try:
-        return await run_in_threadpool(process_image_pipeline, raw_path, pil_img, file.filename, unique_id)
+        return await run_in_threadpool(process_image_pipeline, raw_path, pil_img, file.filename, unique_id, user["id"])
     except Exception as exc:
         logger.exception("Image analysis failed for %s", unique_id)
         raise HTTPException(status_code=500, detail="Image analysis failed. Please try another image.") from exc
 
 @app.post("/api/analyze/sample/{sample_name}")
-async def analyze_sample(sample_name: str):
+async def analyze_sample(sample_name: str, user: dict = Depends(require_user)):
     sample_path = os.path.join(SAMPLES_DIR, sample_name)
     if not os.path.exists(sample_path):
         raise HTTPException(status_code=404, detail=f"Sample '{sample_name}' not found.")
@@ -216,9 +286,9 @@ async def analyze_sample(sample_name: str):
     shutil.copyfile(sample_path, raw_path)
     
     pil_img = Image.open(raw_path)
-    return await run_in_threadpool(process_image_pipeline, raw_path, pil_img, sample_name, unique_id)
+    return await run_in_threadpool(process_image_pipeline, raw_path, pil_img, sample_name, unique_id, user["id"])
 
-def process_image_pipeline(raw_path: str, pil_img: Image.Image, original_filename: str, unique_id: str):
+def process_image_pipeline(raw_path: str, pil_img: Image.Image, original_filename: str, unique_id: str, user_id: int):
     # Keep the forensic buffers bounded. FFT, ELA, and the Grad-CAM overlay
     # allocate several full-frame arrays, which can exhaust small instances.
     # 1. SHA-256 calculation
@@ -293,6 +363,7 @@ def process_image_pipeline(raw_path: str, pil_img: Image.Image, original_filenam
     
     record_data = {
         "analysis_id": unique_id,
+        "user_id": user_id,
         "filename": original_filename,
         "file_path": uploaded_url,
         "file_size": metadata["file_size_bytes"],
@@ -319,33 +390,34 @@ async def get_history(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     status: str = Query(None),
-    search: str = Query(None)
+    search: str = Query(None),
+    user: dict = Depends(require_user)
 ):
-    scans = [repair_sample_preview(scan) for scan in get_scans(limit=limit, offset=offset, status=status, search=search)]
+    scans = [repair_sample_preview(scan) for scan in get_scans(user_id=user["id"], limit=limit, offset=offset, status=status, search=search)]
     return {"scans": scans, "count": len(scans)}
 
 @app.get("/api/history/{scan_id}")
-async def get_single_history(scan_id: str):
-    scan = repair_sample_preview(get_scan_by_id(scan_id))
+async def get_single_history(scan_id: str, user: dict = Depends(require_user)):
+    scan = repair_sample_preview(get_scan_by_id(scan_id, user["id"]))
     if not scan:
         raise HTTPException(status_code=404, detail="Scan record not found.")
     return scan
 
 @app.delete("/api/history/{scan_id}")
-async def delete_single_history(scan_id: str):
-    success = delete_scan(scan_id)
+async def delete_single_history(scan_id: str, user: dict = Depends(require_user)):
+    success = delete_scan(scan_id, user["id"])
     if not success:
         raise HTTPException(status_code=404, detail="Scan record not found.")
     return {"success": True, "message": f"Scan {scan_id} deleted successfully."}
 
 @app.delete("/api/history")
-async def delete_all_history():
-    deleted_count = clear_all_scans()
+async def delete_all_history(user: dict = Depends(require_user)):
+    deleted_count = clear_all_scans(user["id"])
     return {"success": True, "message": f"Cleared {deleted_count} scan records."}
 
 @app.get("/api/dashboard/stats")
-async def dashboard_stats():
-    stats = get_stats()
+async def dashboard_stats(user: dict = Depends(require_user)):
+    stats = get_stats(user["id"])
     stats["recent_scans"] = [repair_sample_preview(scan) for scan in stats.get("recent_scans", [])]
     return stats
 

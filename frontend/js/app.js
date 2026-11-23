@@ -8,6 +8,7 @@ const App = {
   
   init() {
     this.setupNavigation();
+    this.setupAuth();
     this.setupHeroCanvas();
     this.setupAccordions();
     this.checkSystemHealth();
@@ -20,6 +21,57 @@ const App = {
     } else {
       this.switchView('overview');
     }
+  },
+
+  setupAuth() {
+    this.authMode = 'login';
+    const gate = document.getElementById('authGate');
+    const form = document.getElementById('authForm');
+    const accountButton = document.getElementById('accountButton');
+    const toggle = document.getElementById('authToggle');
+    const setAuthView = () => {
+      const signedIn = Boolean(authToken());
+      gate.hidden = signedIn;
+      accountButton.textContent = signedIn ? 'Sign out' : 'Sign in';
+      accountButton.title = signedIn ? 'Sign out of your VerifAI account' : 'Sign in to save detection history';
+    };
+    setAuthView();
+    accountButton.addEventListener('click', () => {
+      if (authToken()) {
+        localStorage.removeItem('verifai_auth_token');
+        setAuthView();
+        this.loadDashboardStats();
+        if (window.HistoryModule) { window.HistoryModule.historyRecords = []; window.HistoryModule.renderHistoryTable(); }
+      } else gate.hidden = false;
+    });
+    toggle.addEventListener('click', () => {
+      this.authMode = this.authMode === 'login' ? 'register' : 'login';
+      document.getElementById('authTitle').textContent = this.authMode === 'login' ? 'Welcome back' : 'Create your account';
+      document.getElementById('authDescription').textContent = this.authMode === 'login' ? 'Sign in to save and view your private detection history.' : 'Create an account to keep your detection history with you.';
+      document.getElementById('authSubmit').textContent = this.authMode === 'login' ? 'Sign in' : 'Create account';
+      document.getElementById('authPassword').autocomplete = this.authMode === 'login' ? 'current-password' : 'new-password';
+      toggle.textContent = this.authMode === 'login' ? 'Create a new account' : 'I already have an account';
+      document.getElementById('authError').textContent = '';
+    });
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const button = document.getElementById('authSubmit');
+      const error = document.getElementById('authError');
+      button.disabled = true;
+      error.textContent = '';
+      try {
+        const response = await fetch(apiUrl(`/api/auth/${this.authMode}`), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: document.getElementById('authEmail').value, password: document.getElementById('authPassword').value }) });
+        const data = await apiJson(response);
+        if (!response.ok) throw new Error(data.detail || 'Could not sign in.');
+        localStorage.setItem('verifai_auth_token', data.token);
+        form.reset();
+        setAuthView();
+        this.loadDashboardStats();
+        if (window.HistoryModule) window.HistoryModule.loadHistory();
+        this.showToast('Signed in successfully', 'success');
+      } catch (err) { error.textContent = err.message; }
+      finally { button.disabled = false; }
+    });
   },
 
   setupNavigation() {
@@ -126,7 +178,7 @@ const App = {
 
   async checkSystemHealth() {
     try {
-      const res = await fetch(apiUrl('/api/health'));
+      const res = await apiFetch(apiUrl('/api/health'));
       if (res.ok) {
         const data = await apiJson(res);
         const indicator = document.getElementById('systemHealthText');
@@ -140,8 +192,14 @@ const App = {
   },
 
   async loadDashboardStats() {
+    if (!authToken()) {
+      ['statTotalScans', 'statRealScans', 'statFakeScans'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
+      const recent = document.getElementById('recentActivityList');
+      if (recent) recent.innerHTML = '<div style="text-align:center;color:var(--color-muted-text);padding:2rem">Sign in to view your saved scan history.</div>';
+      return;
+    }
     try {
-      const res = await fetch(apiUrl('/api/dashboard/stats'));
+      const res = await apiFetch(apiUrl('/api/dashboard/stats'));
       if (res.ok) {
         const stats = await apiJson(res);
         const totalEl = document.getElementById('statTotalScans');

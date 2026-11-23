@@ -65,7 +65,7 @@ verifai/
 │   ├── app.py                      # FastAPI application with REST API & static routing
 │   ├── model.py                    # PyTorch MobileNetV3-Small & Grad-CAM explainer
 │   ├── forensics.py                # 2D FFT, ELA, EXIF metadata, evidence fusion engine
-│   ├── database.py                 # SQLite persistent history & analytics
+│   ├── database.py                 # SQLite accounts, private history & analytics
 │   ├── init_model_and_samples.py   # Checkpoint initializer & sample generator
 │   ├── weights/
 │   │   └── mobilenetv3_deepfake.pth # PyTorch model checkpoint & metrics
@@ -105,6 +105,8 @@ cd backend
 python app.py
 ```
 
+Create an account or sign in with an email and password to use the detectors. Passwords are stored as salted scrypt hashes, and each account can access only its own history. The signed-in browser session lasts 14 days. Configure `VERIFAI_DB_PATH` to point to durable storage when deploying: the default SQLite file is stored in `backend/verifai_history.db`, and temporary/ephemeral hosting disks can lose accounts and scan history when instances are replaced. Existing unowned scan rows from older versions remain unassigned after the database upgrade.
+
 The first audio analysis downloads the 1.28 MB AASIST checkpoint from Hugging Face and caches it locally; later analyses reuse that cache. Audio inference uses the existing PyTorch runtime. Video analysis reuses the already-loaded MobileNetV3 image model and does not download a separate model. Audio recordings up to 500 seconds and video clips up to 10 minutes are accepted. Audio and video model results are screening estimates, not proof of authenticity; AASIST may generalize poorly outside its training domain.
 
 ### Deploy backend to Oracle Cloud
@@ -121,7 +123,9 @@ Visit **`http://localhost:8000`** in any modern web browser.
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/api/health` | Service status, device (CPU/CUDA), model load verification |
-| `POST` | `/api/analyze/image` | Multipart image upload for 260x260 PyTorch inference |
+| `POST` | `/api/auth/register` | Create an email/password account |
+| `POST` | `/api/auth/login` | Sign in and receive a 14-day bearer token |
+| `POST` | `/api/analyze/image` | Authenticated multipart image upload for 260x260 PyTorch inference |
 | `POST` | `/api/analyze/audio` | AASIST sampled-window audio anti-spoofing classification (10 MB, 500 seconds maximum) |
 | `POST` | `/api/analyze/video` | MobileNetV3 sampled-frame deepfake classification (25 MB, 10 minutes maximum) |
 | `POST` | `/api/analyze/sample/{name}` | Analyze one of the built-in benchmark samples |

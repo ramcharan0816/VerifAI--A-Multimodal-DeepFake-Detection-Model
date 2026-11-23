@@ -61,7 +61,7 @@ const ForensicsModule = {
   async loadSample(sampleName) {
     App.showToast(`Loading forensic scan for ${sampleName}...`, 'info');
     try {
-      const res = await fetch(apiUrl(`/api/analyze/sample/${encodeURIComponent(sampleName)}`), { method: 'POST' });
+      const res = await apiFetch(apiUrl(`/api/analyze/sample/${encodeURIComponent(sampleName)}`), { method: 'POST' });
       if (res.ok) {
         const record = await apiJson(res);
         this.populateForensicsView(record);
@@ -83,7 +83,7 @@ const ForensicsModule = {
 
     // Try fetching the latest scan from SQLite
     try {
-      const res = await fetch(apiUrl('/api/history?limit=1'));
+      const res = await apiFetch(apiUrl('/api/history?limit=1'));
       if (res.ok) {
         const data = await apiJson(res);
         if (data.scans && data.scans.length > 0) {

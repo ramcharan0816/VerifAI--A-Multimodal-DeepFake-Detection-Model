@@ -54,8 +54,9 @@ const HistoryModule = {
   },
 
   async loadHistory() {
+    if (!authToken()) { this.historyRecords = []; this.renderHistoryTable(); return; }
     try {
-      const res = await fetch(apiUrl('/api/history?limit=100'));
+      const res = await apiFetch(apiUrl('/api/history?limit=100'));
       if (res.ok) {
         const data = await apiJson(res);
         this.historyRecords = data.scans || [];
@@ -95,7 +96,7 @@ const HistoryModule = {
     tbody.innerHTML = filtered.map(r => `
       <tr>
         <td>
-          <img src="${mediaUrl(r.file_path)}" style="width: 48px; height: 48px; border-radius: 6px; object-fit: cover; border: 1px solid var(--color-border-green);" />
+          ${r.forensic_data?.media_type === 'audio' ? '<div class="history-media-icon">AUDIO</div>' : r.forensic_data?.media_type === 'video' ? '<div class="history-media-icon">VIDEO</div>' : `<img src="${mediaUrl(r.file_path)}" style="width: 48px; height: 48px; border-radius: 6px; object-fit: cover; border: 1px solid var(--color-border-green);" />`}
         </td>
         <td>
           <div style="font-weight: 600; font-size: 0.92rem;">${r.filename}</div>
@@ -139,6 +140,13 @@ const HistoryModule = {
     const modal = document.getElementById('historyDetailModal');
     const modalContent = document.getElementById('historyDetailModalContent');
     if (!modal || !modalContent) return;
+    const mediaType = record.forensic_data?.media_type;
+    if (mediaType === 'audio' || mediaType === 'video') {
+      const signals = record.forensic_data?.signals || [];
+      modalContent.innerHTML = `<div style="border-bottom:1px solid var(--color-border-green);padding-bottom:1rem;margin-bottom:1rem"><div style="font-size:.75rem;color:var(--color-champagne)">${mediaType.toUpperCase()} SCREENING RECORD</div><h2>${record.filename}</h2><div style="color:var(--color-mint)">${record.analysis_id}</div><span class="badge ${record.prediction === 'REAL' ? 'badge-real' : 'badge-fake'}">${record.prediction} (${record.confidence}%)</span></div><p>Duration: ${record.dimensions} · File: ${(record.file_size / 1024 / 1024).toFixed(2)} MB</p><p>SHA-256: <code>${record.sha256}</code></p><h4>Findings</h4><ul>${signals.map(signal => `<li>${signal}</li>`).join('')}</ul><div style="display:flex;justify-content:flex-end"><button class="btn btn-outline" onclick="HistoryModule.closeModal()">Close</button></div>`;
+      modal.classList.add('active');
+      return;
+    }
 
     modalContent.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--color-border-green); padding-bottom: 1rem; margin-bottom: 1.5rem;">
@@ -198,7 +206,7 @@ const HistoryModule = {
   async deleteRecord(analysisId) {
     if (!confirm(`Delete scan record ${analysisId}?`)) return;
     try {
-      const res = await fetch(apiUrl(`/api/history/${analysisId}`), { method: 'DELETE' });
+      const res = await apiFetch(apiUrl(`/api/history/${analysisId}`), { method: 'DELETE' });
       if (res.ok) {
         App.showToast(`Deleted record ${analysisId}`, 'info');
         this.historyRecords = this.historyRecords.filter(r => r.analysis_id !== analysisId);
@@ -212,7 +220,7 @@ const HistoryModule = {
 
   async clearAllHistory() {
     try {
-      const res = await fetch(apiUrl('/api/history'), { method: 'DELETE' });
+      const res = await apiFetch(apiUrl('/api/history'), { method: 'DELETE' });
       if (res.ok) {
         App.showToast('All scan records cleared', 'info');
         this.historyRecords = [];
