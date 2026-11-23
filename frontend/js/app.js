@@ -60,7 +60,20 @@ const App = {
       button.disabled = true;
       error.textContent = '';
       try {
-        const response = await fetch(apiUrl(`/api/auth/${this.authMode}`), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: document.getElementById('authEmail').value, password: document.getElementById('authPassword').value }) });
+        const credentials = JSON.stringify({ email: document.getElementById('authEmail').value, password: document.getElementById('authPassword').value });
+        button.textContent = 'Connecting…';
+        await waitForApiReady(undefined, status => { button.textContent = status; });
+        let response = await fetch(apiUrl(`/api/auth/${this.authMode}`), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: credentials });
+        if ([502, 503, 504].includes(response.status)) {
+          button.textContent = 'Reconnecting…';
+          await waitForApiReady(undefined, status => { button.textContent = status; });
+          response = await fetch(apiUrl(`/api/auth/${this.authMode}`), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: credentials });
+        }
+        // The first registration may have succeeded even if its gateway response
+        // was lost. In that case, sign in with the same submitted credentials.
+        if (this.authMode === 'register' && response.status === 409) {
+          response = await fetch(apiUrl('/api/auth/login'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: credentials });
+        }
         const data = await apiJson(response);
         if (!response.ok) throw new Error(data.detail || 'Could not sign in.');
         localStorage.setItem('verifai_auth_token', data.token);
@@ -71,7 +84,10 @@ const App = {
         if (this.currentView === 'forensics' && window.ForensicsModule) window.ForensicsModule.ensureLoaded();
         this.showToast('Signed in successfully', 'success');
       } catch (err) { error.textContent = err.message; }
-      finally { button.disabled = false; }
+      finally {
+        button.disabled = false;
+        button.textContent = this.authMode === 'login' ? 'Sign in' : 'Create account';
+      }
     });
   },
 

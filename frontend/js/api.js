@@ -7,6 +7,9 @@ window.apiJson = async (response) => {
   try {
     return JSON.parse(body);
   } catch {
+    if ([502, 503, 504].includes(response.status)) {
+      throw new Error(`The detection service returned HTTP ${response.status}. It may still be starting; wait a moment and try again.`);
+    }
     throw new Error(`The detection API returned a non-JSON response (HTTP ${response.status}). Check the backend service status and logs.`);
   }
 };
