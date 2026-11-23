@@ -74,6 +74,9 @@ const ForensicsModule = {
 
   async ensureLoaded() {
     if (this.currentRecord) return;
+    // History is account-scoped; do not issue a request that must be rejected
+    // while the sign-in gate is active.
+    if (!authToken()) return;
     
     // Check if App has an active scan data
     if (App.activeScanData) {

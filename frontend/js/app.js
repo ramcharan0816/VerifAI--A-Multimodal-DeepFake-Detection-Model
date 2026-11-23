@@ -68,6 +68,7 @@ const App = {
         setAuthView();
         this.loadDashboardStats();
         if (window.HistoryModule) window.HistoryModule.loadHistory();
+        if (this.currentView === 'forensics' && window.ForensicsModule) window.ForensicsModule.ensureLoaded();
         this.showToast('Signed in successfully', 'success');
       } catch (err) { error.textContent = err.message; }
       finally { button.disabled = false; }
