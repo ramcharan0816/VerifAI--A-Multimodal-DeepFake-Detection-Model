@@ -39,8 +39,16 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
         <span>Analyze Media</span>
       </button>
-      <span id="accountIdentity" style="display:none;color:var(--color-mint);font-size:.85rem;margin-left:.75rem"></span>
-      <button class="btn btn-outline" id="accountButton" type="button" style="margin-left:.5rem">Sign in</button>
+      <div class="account-menu" id="accountMenu">
+        <button class="btn btn-outline" id="accountButton" type="button" aria-expanded="false" aria-controls="profileDropdown">Sign in</button>
+        <div class="profile-dropdown" id="profileDropdown" hidden>
+          <div class="profile-summary">
+            <span class="profile-avatar" id="profileAvatar">V</span>
+            <div><strong id="profileUsername">User</strong><small id="profileEmail"></small></div>
+          </div>
+          <button class="profile-signout" id="profileSignout" type="button">Sign out</button>
+        </div>
+      </div>
     </div>
   </header>
 

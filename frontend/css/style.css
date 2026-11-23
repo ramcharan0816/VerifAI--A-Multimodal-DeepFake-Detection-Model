@@ -1080,6 +1080,17 @@ h1, h2, h3, h4, h5, h6 {
 .auth-submit { width: 100%; justify-content: center; margin-top: 1.25rem; }
 .auth-error { min-height: 1.2rem; color: #ff9da3; font-size: .84rem; }
 .auth-toggle { display: block; margin: .5rem auto 0; padding: .4rem; border: 0; background: transparent; color: var(--color-mint); cursor: pointer; font: inherit; }
+.account-menu { position: relative; margin-left: .5rem; }
+.account-menu > #accountButton { min-width: 92px; }
+.profile-dropdown[hidden] { display: none; }
+.profile-dropdown { position: absolute; top: calc(100% + .65rem); right: 0; z-index: 1001; width: 250px; padding: .75rem; border: 1px solid var(--color-border-green); border-radius: 12px; background: var(--color-deep-forest); box-shadow: 0 16px 40px rgba(0,0,0,.4); }
+.profile-summary { display: flex; align-items: center; gap: .75rem; padding: .5rem; }
+.profile-avatar { display: grid; place-items: center; flex: 0 0 40px; height: 40px; border-radius: 50%; background: var(--color-emerald); color: var(--color-ivory); font-weight: 800; }
+.profile-summary strong,.profile-summary small { display: block; overflow: hidden; max-width: 175px; text-overflow: ellipsis; white-space: nowrap; }
+.profile-summary strong { color: var(--color-ivory); }
+.profile-summary small { margin-top: .2rem; color: var(--color-muted-text); font-size: .78rem; }
+.profile-signout { width: 100%; margin-top: .5rem; padding: .65rem .75rem; border: 0; border-top: 1px solid var(--color-border-green); background: transparent; color: var(--color-soft-mint); text-align: left; cursor: pointer; font: inherit; }
+.profile-signout:hover { color: var(--color-ivory); }
 
 @media (max-width: 1024px) {
   .app-sidebar {

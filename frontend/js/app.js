@@ -28,17 +28,21 @@ const App = {
     const gate = document.getElementById('authGate');
     const form = document.getElementById('authForm');
     const accountButton = document.getElementById('accountButton');
-    const accountIdentity = document.getElementById('accountIdentity');
+    const profileDropdown = document.getElementById('profileDropdown');
+    const profileSignout = document.getElementById('profileSignout');
     const toggle = document.getElementById('authToggle');
     const setAuthView = () => {
       const signedIn = Boolean(authToken());
       gate.hidden = signedIn;
-      accountButton.textContent = signedIn ? 'Sign out' : 'Sign in';
-      accountButton.title = signedIn ? 'Sign out of your VerifAI account' : 'Sign in to save detection history';
+      accountButton.textContent = signedIn ? 'Profile' : 'Sign in';
+      accountButton.title = signedIn ? 'Open your VerifAI profile' : 'Sign in to save detection history';
       let user = null;
       try { user = JSON.parse(localStorage.getItem('verifai_user') || 'null'); } catch { localStorage.removeItem('verifai_user'); }
-      accountIdentity.textContent = signedIn && user?.username ? `@${user.username}` : '';
-      accountIdentity.style.display = signedIn && user?.username ? 'inline' : 'none';
+      document.getElementById('profileUsername').textContent = user?.username ? `@${user.username}` : 'Your profile';
+      document.getElementById('profileEmail').textContent = user?.email || '';
+      document.getElementById('profileAvatar').textContent = user?.username?.[0]?.toUpperCase() || 'V';
+      if (!signedIn) profileDropdown.hidden = true;
+      accountButton.setAttribute('aria-expanded', String(signedIn && !profileDropdown.hidden));
     };
     setAuthView();
     if (authToken() && !localStorage.getItem('verifai_user')) {
@@ -49,12 +53,29 @@ const App = {
     }
     accountButton.addEventListener('click', () => {
       if (authToken()) {
-        localStorage.removeItem('verifai_auth_token');
-        localStorage.removeItem('verifai_user');
-        setAuthView();
-        this.loadDashboardStats();
-        if (window.HistoryModule) { window.HistoryModule.historyRecords = []; window.HistoryModule.renderHistoryTable(); }
+        profileDropdown.hidden = !profileDropdown.hidden;
+        accountButton.setAttribute('aria-expanded', String(!profileDropdown.hidden));
       } else gate.hidden = false;
+    });
+    profileSignout.addEventListener('click', () => {
+      localStorage.removeItem('verifai_auth_token');
+      localStorage.removeItem('verifai_user');
+      profileDropdown.hidden = true;
+      setAuthView();
+      this.loadDashboardStats();
+      if (window.HistoryModule) { window.HistoryModule.historyRecords = []; window.HistoryModule.renderHistoryTable(); }
+    });
+    document.addEventListener('click', event => {
+      if (!document.getElementById('accountMenu').contains(event.target)) {
+        profileDropdown.hidden = true;
+        accountButton.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        profileDropdown.hidden = true;
+        accountButton.setAttribute('aria-expanded', 'false');
+      }
     });
     toggle.addEventListener('click', () => {
       this.authMode = this.authMode === 'login' ? 'register' : 'login';
