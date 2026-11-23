@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import json
+import re
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
@@ -14,7 +15,7 @@ def get_connection():
 def init_db():
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, created_at TEXT NOT NULL)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, username TEXT NOT NULL, password_hash TEXT NOT NULL, created_at TEXT NOT NULL)")
     cursor.execute("CREATE TABLE IF NOT EXISTS app_config (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
     if not cursor.execute("SELECT 1 FROM app_config WHERE key = ?", ("token_secret",)).fetchone():
         cursor.execute("INSERT INTO app_config(key, value) VALUES (?, ?)", ("token_secret", os.urandom(32).hex()))
@@ -43,6 +44,22 @@ def init_db():
     columns = {row[1] for row in cursor.execute("PRAGMA table_info(scans)").fetchall()}
     if "user_id" not in columns:
         cursor.execute("ALTER TABLE scans ADD COLUMN user_id INTEGER REFERENCES users(id)")
+    user_columns = {row[1] for row in cursor.execute("PRAGMA table_info(users)").fetchall()}
+    if "username" not in user_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN username TEXT")
+        existing_users = cursor.execute("SELECT id, email FROM users ORDER BY id").fetchall()
+        used_usernames = set()
+        for existing_user in existing_users:
+            base = existing_user["email"].split("@", 1)[0].lower()
+            base = re.sub(r"[^a-z0-9_]", "_", base)[:20] or "user"
+            username = base
+            suffix = 1
+            while username in used_usernames:
+                suffix += 1
+                username = f"{base[:20-len(str(suffix))]}{suffix}"
+            used_usernames.add(username)
+            cursor.execute("UPDATE users SET username = ? WHERE id = ?", (username, existing_user["id"]))
+    cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_prediction ON scans(prediction)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_created_at ON scans(created_at)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_scans_user_id ON scans(user_id)")
@@ -220,10 +237,10 @@ def get_stats(user_id: int) -> Dict[str, Any]:
 init_db()
 
 
-def create_user(email: str, password_hash: str) -> Optional[int]:
+def create_user(email: str, username: str, password_hash: str) -> Optional[int]:
     conn = get_connection()
     try:
-        cursor = conn.execute("INSERT INTO users(email, password_hash, created_at) VALUES (?, ?, ?)", (email, password_hash, datetime.utcnow().isoformat() + "Z"))
+        cursor = conn.execute("INSERT INTO users(email, username, password_hash, created_at) VALUES (?, ?, ?, ?)", (email, username, password_hash, datetime.utcnow().isoformat() + "Z"))
         conn.commit()
         return cursor.lastrowid
     except sqlite3.IntegrityError:
@@ -237,9 +254,15 @@ def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
     conn.close()
     return dict(row) if row else None
 
+def get_user_by_username(username: str) -> Optional[Dict[str, Any]]:
+    conn = get_connection()
+    row = conn.execute("SELECT id, email, username FROM users WHERE username = ?", (username,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
 def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
     conn = get_connection()
-    row = conn.execute("SELECT id, email FROM users WHERE id = ?", (user_id,)).fetchone()
+    row = conn.execute("SELECT id, email, username FROM users WHERE id = ?", (user_id,)).fetchone()
     conn.close()
     return dict(row) if row else None
 

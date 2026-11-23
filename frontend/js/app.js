@@ -28,17 +28,29 @@ const App = {
     const gate = document.getElementById('authGate');
     const form = document.getElementById('authForm');
     const accountButton = document.getElementById('accountButton');
+    const accountIdentity = document.getElementById('accountIdentity');
     const toggle = document.getElementById('authToggle');
     const setAuthView = () => {
       const signedIn = Boolean(authToken());
       gate.hidden = signedIn;
       accountButton.textContent = signedIn ? 'Sign out' : 'Sign in';
       accountButton.title = signedIn ? 'Sign out of your VerifAI account' : 'Sign in to save detection history';
+      let user = null;
+      try { user = JSON.parse(localStorage.getItem('verifai_user') || 'null'); } catch { localStorage.removeItem('verifai_user'); }
+      accountIdentity.textContent = signedIn && user?.username ? `@${user.username}` : '';
+      accountIdentity.style.display = signedIn && user?.username ? 'inline' : 'none';
     };
     setAuthView();
+    if (authToken() && !localStorage.getItem('verifai_user')) {
+      apiFetch(apiUrl('/api/auth/me')).then(apiJson).then(data => {
+        localStorage.setItem('verifai_user', JSON.stringify(data.user));
+        setAuthView();
+      }).catch(() => {});
+    }
     accountButton.addEventListener('click', () => {
       if (authToken()) {
         localStorage.removeItem('verifai_auth_token');
+        localStorage.removeItem('verifai_user');
         setAuthView();
         this.loadDashboardStats();
         if (window.HistoryModule) { window.HistoryModule.historyRecords = []; window.HistoryModule.renderHistoryTable(); }
@@ -50,6 +62,10 @@ const App = {
       document.getElementById('authDescription').textContent = this.authMode === 'login' ? 'Sign in to save and view your private detection history.' : 'Create an account to keep your detection history with you.';
       document.getElementById('authSubmit').textContent = this.authMode === 'login' ? 'Sign in' : 'Create account';
       document.getElementById('authPassword').autocomplete = this.authMode === 'login' ? 'current-password' : 'new-password';
+      const usernameField = document.getElementById('authUsernameField');
+      const usernameInput = document.getElementById('authUsername');
+      usernameField.hidden = this.authMode !== 'register';
+      usernameInput.required = this.authMode === 'register';
       toggle.textContent = this.authMode === 'login' ? 'Create a new account' : 'I already have an account';
       document.getElementById('authError').textContent = '';
     });
@@ -60,7 +76,9 @@ const App = {
       button.disabled = true;
       error.textContent = '';
       try {
-        const credentials = JSON.stringify({ email: document.getElementById('authEmail').value, password: document.getElementById('authPassword').value });
+        const accountDetails = { email: document.getElementById('authEmail').value, password: document.getElementById('authPassword').value };
+        if (this.authMode === 'register') accountDetails.username = document.getElementById('authUsername').value;
+        const credentials = JSON.stringify(accountDetails);
         button.textContent = 'Connecting…';
         await waitForApiReady(undefined, status => { button.textContent = status; });
         let response = await fetch(apiUrl(`/api/auth/${this.authMode}`), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: credentials });
@@ -72,11 +90,15 @@ const App = {
         // The first registration may have succeeded even if its gateway response
         // was lost. In that case, sign in with the same submitted credentials.
         if (this.authMode === 'register' && response.status === 409) {
-          response = await fetch(apiUrl('/api/auth/login'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: credentials });
+          const conflict = await response.clone().json().catch(() => ({}));
+          if ((conflict.detail || '').includes('email already exists')) {
+            response = await fetch(apiUrl('/api/auth/login'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: credentials });
+          }
         }
         const data = await apiJson(response);
         if (!response.ok) throw new Error(data.detail || 'Could not sign in.');
         localStorage.setItem('verifai_auth_token', data.token);
+        localStorage.setItem('verifai_user', JSON.stringify(data.user));
         form.reset();
         setAuthView();
         this.loadDashboardStats();

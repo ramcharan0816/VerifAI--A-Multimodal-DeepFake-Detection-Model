@@ -18,7 +18,7 @@ from starlette.concurrency import run_in_threadpool
 from PIL import Image
 import uvicorn
 
-from database import init_db, save_scan, get_scans, get_scan_by_id, delete_scan, clear_all_scans, get_stats, create_user, get_user_by_email, get_user_by_id, get_token_secret
+from database import init_db, save_scan, get_scans, get_scan_by_id, delete_scan, clear_all_scans, get_stats, create_user, get_user_by_email, get_user_by_username, get_user_by_id, get_token_secret
 from model import model_service
 from media_models import analyze_audio as run_audio_model, analyze_video as run_video_model
 from forensics import (
@@ -148,15 +148,19 @@ async def require_user(authorization: str = Header(default="")):
 @app.post("/api/auth/register")
 async def register_account(payload: dict):
     email = str(payload.get("email", "")).strip().lower()
+    username = str(payload.get("username", "")).strip().lower()
     password = payload.get("password", "")
     if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email) or len(email) > 254:
         raise HTTPException(status_code=422, detail="Enter a valid email address.")
+    if not re.fullmatch(r"[a-z0-9_]{3,24}", username):
+        raise HTTPException(status_code=422, detail="Username must be 3–24 characters using letters, numbers, or underscores.")
     if not isinstance(password, str) or len(password) < 8 or len(password) > 128:
         raise HTTPException(status_code=422, detail="Password must be 8 to 128 characters.")
-    user_id = create_user(email, _password_hash(password))
+    user_id = create_user(email, username, _password_hash(password))
     if not user_id:
-        raise HTTPException(status_code=409, detail="An account with this email already exists.")
-    return {"token": _issue_token(user_id), "user": {"id": user_id, "email": email}}
+        detail = "An account with this email already exists." if get_user_by_email(email) else "That username is already taken."
+        raise HTTPException(status_code=409, detail=detail)
+    return {"token": _issue_token(user_id), "user": {"id": user_id, "email": email, "username": username}}
 
 @app.post("/api/auth/login")
 async def login_account(payload: dict):
@@ -165,7 +169,11 @@ async def login_account(payload: dict):
     user = get_user_by_email(email)
     if not user or not isinstance(password, str) or not _password_matches(password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Email or password is incorrect.")
-    return {"token": _issue_token(user["id"]), "user": {"id": user["id"], "email": user["email"]}}
+    return {"token": _issue_token(user["id"]), "user": {"id": user["id"], "email": user["email"], "username": user["username"]}}
+
+@app.get("/api/auth/me")
+async def current_account(user: dict = Depends(require_user)):
+    return {"user": user}
 
 @app.post("/api/analyze/audio")
 async def analyze_audio(file: UploadFile = File(...), user: dict = Depends(require_user)):
